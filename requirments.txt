@@ -1,0 +1,6 @@
+python-instagram
+requests
+gspread
+oauth2client
+PyMySQL
+PyMySQL
