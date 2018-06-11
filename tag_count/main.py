@@ -6,8 +6,8 @@ import copy
 import datetime
 import calendar
 import sqlite3
-
-# from instagram.client import InstagramAPI
+import copy
+from collections import OrderedDict
 
 conn = sqlite3.connect('instagram.db')
 
@@ -25,26 +25,15 @@ sql_create_tags_table = """ CREATE TABLE IF NOT EXISTS tags (
                                     # NOTE(tom): I can't keep track of the tag ref here there could
                                     # be multiple tag refs in the same instagram post
                                     # tag_ref_name    text NOT NULL,
-sql_create_tag_post_table = """ CREATE TABLE IF NOT EXISTS tag_posts (
-                                    tag_post_pid        integer PRIMARY KEY AUTOINCREMENT,
-                                    parent_tag_name      text   NOT NULL,
+sql_create_tag_post_table = """ CREATE TABLE IF NOT EXISTS tag_refs (
+                                    tag_post_pid         integer PRIMARY KEY AUTOINCREMENT,
+                                    parent_tag_name      text    NOT NULL,
+                                    tag_ref_name         text    NOT NULL,
                                     instagram_post_id    text    NOT NULL,
-                                    instagram_post_date BIGINT NOT NULL,
-
+                                    instagram_post_date  BIGINT  NOT NULL,
+                                    post_multiplier      integer NOT NULL,
 
                                     FOREIGN KEY (parent_tag_name) REFERENCES tags(name)
-                                );
-                            """
-
-# Table containing information about the tags that are in the posts
-                                    # TODO(tom): do we need occurences anymore? or can we calculate this?
-                                    #occurences      int  NOT NULL,
-sql_create_post_tag_ref_table = """ CREATE TABLE IF NOT EXISTS tag_ref (
-                                    tag_ref_id      integer PRIMARY KEY AUTOINCREMENT,
-                                    parent_post_id  text NOT NULL,
-                                    tag_ref_name    text NOT NULL,
-
-                                    FOREIGN KEY (parent_post_id) REFERENCES tag_posts(instagram_post_id)
                                 );
                             """
 
@@ -52,14 +41,31 @@ sql_create_post_tag_ref_table = """ CREATE TABLE IF NOT EXISTS tag_ref (
 
 
 # TODO(tom): use: `ON DUPLICATE KEY UPDATE occurences={1};"` when moving to mysql
-sql_insert_tag_ref_table = "INSERT OR REPLACE INTO tag_ref (parent_tag_name, tag_ref_name, occurences) VALUES ('{0}', '{1}', '{2}');"
+sql_insert_tag_ref_table = "INSERT OR REPLACE INTO tag_refs (parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier) VALUES ('{}', '{}', '{}', '{}', '{}');"
 # TODO(tom): use: `ON DUPLICATE KEY UPDATE sync_date={1};"` when moving to mysql
 sql_insert_tags_table    = "INSERT OR REPLACE INTO tags (name, sync_date) VALUES ('{0}', '{1}');"
 
-# TODO(tom): use: `ON DUPLICATE KEY UPDATE occurences={1};"` when moving to mysql
-sql_insert_tag_post_table = "INSERT OR REPLACE INTO tag_posts (instagram_post_id) VALUES ('{0}');"
-
 sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_posts WHERE parent_tag_name='{0}';"
+
+
+class tag(object):
+
+    def __init__(self, tag_id, name, sync_date):
+        self.tag_id    = tag_id
+        self.name      = name
+        self.sync_date = sync_date
+
+
+class tag_ref(object):
+
+    def __init__(self, tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
+        self.tag_post_pid        = tag_post_pid
+        self.parent_tag_name     = parent_tag_name
+        self.tag_ref_name        = tag_ref_name
+        self.instagram_post_id   = instagram_post_id
+        self.instagram_post_date = instagram_post_date
+        self.post_multiplier     = post_multiplier
+
 
 def create_table(conn, create_table_sql):
     """ create a table from the create_table_sql statement
@@ -110,11 +116,10 @@ def get_tags(comment):
     matches = re.finditer(regex, comment, re.MULTILINE)
 
     for matchNum, match in enumerate(matches):
-        hashtags.append(match.group())
         for groupNum in range(0, len(match.groups())):
             hashtags.append(match.group(groupNum))
 
-    return hashtags
+    return list(set(hashtags))
 
 def get_posts_from_instagram(tag_name):
     """ get all posts from intagram related to tag
@@ -148,13 +153,22 @@ def get_posts_from_instagram(tag_name):
         post_id = post['node']['id']
         post_date = post['node']['taken_at_timestamp']
 
+        if post['node']['edge_media_to_comment']['count'] < 1:
+            post['node']['edge_media_to_comment']['count'] = 1
+        if post['node']['edge_media_preview_like']['count'] < 1:
+            post['node']['edge_media_preview_like']['count'] = 1
+
+        # Used to weight more popular posts higher
+        post_multiplyer = post['node']['edge_media_to_comment']['count'] + post['node']['edge_media_preview_like']['count']
+
         all_tags_in_comments = []
         for comment in post['node']['edge_media_to_caption']['edges']:
             all_tags_in_comments = all_tags_in_comments + get_tags(comment['node']['text'])
 
         all_posts.append({'post_id': post_id,
                           'post_date': post_date,
-                          'hashtags': all_tags_in_comments})
+                          'hashtags': all_tags_in_comments,
+                          'multiplier': post_multiplyer})
 
     return all_posts
 
@@ -173,9 +187,8 @@ def get_posts_from_db(conn, tag_name):
     local_posts = select_from_table(conn, sql_select_post_ids_from_tag_posts.format(tag_name))
     return local_posts.fetchall()
 
-
 def get_new_posts(conn, tag_name):
-    posts_from_db_list   = get_posts_from_db(conn, tag_name)
+    posts_from_db_list   = [] #get_posts_from_db(conn, tag_name)
     posts_from_instagram = get_posts_from_instagram(tag_name)
 
     new_posts = []
@@ -185,55 +198,75 @@ def get_new_posts(conn, tag_name):
 
     return new_posts
 
+def sort_post_data_list(all_posts):
+    for _ in range (len(all_posts)):
 
-create_table(conn, sql_create_tags_table)
-create_table(conn, sql_create_tag_post_table)
-create_table(conn, sql_create_post_tag_ref_table)
-# create_table(conn, sql_create_post_tag_ref_unique_index)
+        largest_tag = copy.deepcopy(all_posts[0])
+        position = 0
 
-temp_tags     = 'party' # input('Enter your tag names with spaces in-between (no hashtags): ')
-temp_tags     = temp_tags.replace('#', '')
-tag_names     = temp_tags.split(' ')
-tag_names     = [x.strip() for x in tag_names]
+        for post in all_posts:
+            if post['count'] > largest_tag['count']:
+                largest_tag = copy.deepcopy(post)
 
-# Get data for tag
-for num, tag_name in enumerate(tag_names):
-    # Get the current time
-    now          = datetime.datetime.now(datetime.timezone.utc)
-    current_time = calendar.timegm(now.utctimetuple())
+        del all_posts[position]
+        yield largest_tag
 
-    # Set sync time on tag to show we are updating it
-    insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
+def main():
+    create_table(conn, sql_create_tags_table)
+    create_table(conn, sql_create_tag_post_table)
+    # create_table(conn, sql_create_post_tag_ref_unique_index)
 
-    print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name)
-    all_tag_posts = get_new_posts(conn, tag_name)
+    temp_tags     = 'party' # input('Enter your tag names with spaces in-between (no hashtags): ')
+    temp_tags     = temp_tags.replace('#', '')
+    tag_names     = temp_tags.split(' ')
+    tag_names     = [x.strip() for x in tag_names]
 
-    # Get tags in comment of post
-    all_ref_tags = {}
-    for post in all_tag_posts:
+    # Get data for tag
+    for num, tag_name in enumerate(tag_names):
+        # Get the current time
+        now          = datetime.datetime.now(datetime.timezone.utc)
+        current_time = calendar.timegm(now.utctimetuple())
 
-        for tag in tags_in_comment:
-            if tag in all_ref_tags:
-                all_ref_tags[tag] = all_ref_tags[tag] + 1
-            else:
-                all_ref_tags[tag] = 1
+        # Set sync time on tag to show we are updating it
+        #insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
 
-    # Insert tag data into DB
-    for ref_tag, tag_occurences in all_ref_tags.items():
-        if tag_occurences < MINNIMUM_OCCURENCE_COUNT:
-            continue
+        print("------------------------------------------------------")
+        print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name + " --------------------")
+        print("")
+        all_tag_posts = get_new_posts(conn, tag_name)
 
-        insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name, ref_tag, tag_occurences))
+        # Get tags in comment of post
+        for post_data in all_tag_posts:
+            for tag in post_data['hashtags']:
+                if tag in all_ref_tags:
+                    post_data['count'] = post_data['count'] + post_data['multiplier']
+                else:
+                    post_data['count'] = post_data['multiplier']
+
+        # Insert tag data into DB
+        for post_data in sort_post_data_list(all_ref_tags):
+
+            if post_data['count'] < MINNIMUM_OCCURENCE_COUNT:
+                break
+
+            print ("TAG: {}".format(tag))
+            print ("   Count: {}".format(post_data['count']))
+            # (parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier)
+            insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name, ref_tag, post_data['count']))
 
 
-    # Set sync time on tag to show we are done updating it
-    insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
+        # Set sync time on tag to show we are done updating it
+        #insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
 
 
-print('DUMPING TAGS TABLE')
-for row in conn.execute("SELECT * FROM tags"):
-    print(row)
+    # print('DUMPING TAGS TABLE')
+    # for row in conn.execute("SELECT * FROM tags"):
+    #     print(row)
 
-print('DUMPING TAG_REF TABLE')
-for row in conn.execute("SELECT * FROM tag_ref"):
-    print(row)
+    # print('DUMPING TAG_REF TABLE')
+    # for row in conn.execute("SELECT * FROM tag_ref"):
+    #     print(row)
+
+
+if __name__ == '__main__':
+    main()
