@@ -50,14 +50,14 @@ sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_posts WH
 
 class tag(object):
 
-    def __init__(self, tag_id, name, sync_date):
+    def __init__(self, tag_id, name, sync_date, all_tag_refs):
         self.tag_id    = tag_id
         self.name      = name
         self.sync_date = sync_date
+        self.all_tag_refs = all_tag_refs
 
 
 class tag_ref(object):
-
     def __init__(self, tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
         self.tag_post_pid        = tag_post_pid
         self.parent_tag_name     = parent_tag_name
@@ -65,6 +65,7 @@ class tag_ref(object):
         self.instagram_post_id   = instagram_post_id
         self.instagram_post_date = instagram_post_date
         self.post_multiplier     = post_multiplier
+        self.count               = 0
 
 
 def create_table(conn, create_table_sql):
@@ -148,7 +149,7 @@ def get_posts_from_instagram(tag_name):
     top_posts  = party_data['graphql']['hashtag']['edge_hashtag_to_top_posts']['edges']
 
     # Get tags in comment of post
-    all_posts = []
+    all_tag_refs = []
     for post in (new_posts + top_posts):
         post_id = post['node']['id']
         post_date = post['node']['taken_at_timestamp']
@@ -165,12 +166,18 @@ def get_posts_from_instagram(tag_name):
         for comment in post['node']['edge_media_to_caption']['edges']:
             all_tags_in_comments = all_tags_in_comments + get_tags(comment['node']['text'])
 
-        all_posts.append({'post_id': post_id,
-                          'post_date': post_date,
-                          'hashtags': all_tags_in_comments,
-                          'multiplier': post_multiplyer})
+        for tag in all_tags_in_comments:
+            # tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
 
-    return all_posts
+            all_tag_refs.append(tag_ref(-1,
+                                        tag_name,
+                                        tag,
+                                        post_id,
+                                        post_date,
+                                        post_multiplyer))
+
+
+    return tag(tag_name, -1, all_tag_refs)
 
 def get_posts_from_db(conn, tag_name):
     """ get all posts from db related to tag
@@ -187,16 +194,16 @@ def get_posts_from_db(conn, tag_name):
     local_posts = select_from_table(conn, sql_select_post_ids_from_tag_posts.format(tag_name))
     return local_posts.fetchall()
 
-def get_new_posts(conn, tag_name):
+def get_new_tag_refs(conn, tag_name):
     posts_from_db_list   = [] #get_posts_from_db(conn, tag_name)
-    posts_from_instagram = get_posts_from_instagram(tag_name)
+    tag_data = get_posts_from_instagram(tag_name)
 
-    new_posts = []
-    for post in posts_from_instagram:
-        if post['post_id'] not in posts_from_db_list:
-            new_posts.append(post)
+    new_tag_refs = []
+    for temp_tag_ref in tag_data.all_tag_refs:
+        if temp_tag_ref.instagram_post_id not in posts_from_db_list:
+            new_tag_refs.append(temp_tag_ref)
 
-    return new_posts
+    return new_tag_refs
 
 def sort_post_data_list(all_posts):
     for _ in range (len(all_posts)):
@@ -233,15 +240,17 @@ def main():
         print("------------------------------------------------------")
         print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name + " --------------------")
         print("")
-        all_tag_posts = get_new_posts(conn, tag_name)
+        all_tag_new_tags = get_new_tag_refs(conn, tag_name)
 
+        # TODO(tjcocozz): Now that we have a list of tag_refs objs returned
+        # we should count our occurences and display the output
+        all_ref_tags = {}
         # Get tags in comment of post
-        for post_data in all_tag_posts:
-            for tag in post_data['hashtags']:
-                if tag in all_ref_tags:
-                    post_data['count'] = post_data['count'] + post_data['multiplier']
-                else:
-                    post_data['count'] = post_data['multiplier']
+        for tag_data in all_tag_new_tags:
+            if tag.name in all_ref_tags:
+                post_data['count'] = post_data['count'] + post_data['multiplier']
+            else:
+                post_data['count'] = post_data['multiplier']
 
         # Insert tag data into DB
         for post_data in sort_post_data_list(all_ref_tags):
