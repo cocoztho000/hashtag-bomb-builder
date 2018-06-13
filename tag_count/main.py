@@ -50,14 +50,34 @@ sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_posts WH
 
 class tag(object):
 
-    def __init__(self, tag_id, name, sync_date, all_tag_refs):
-        self.tag_id    = tag_id
+    def __init__(self, name, sync_date, all_post_tags):
         self.name      = name
         self.sync_date = sync_date
-        self.all_tag_refs = all_tag_refs
+        self.all_post_tags = all_post_tags
+
+    def get_ordered_tag_refs(self):
+        temp_tag_refs = {}
+        for temp_tag_ref in self.all_post_tags:
+            if temp_tag_ref.tag_ref_name in temp_tag_refs:
+                temp_tag_refs[temp_tag_ref.tag_ref_name].count += temp_tag_ref.post_multiplier
+            else:
+                temp_tag_refs[temp_tag_ref.tag_ref_name] = tag_ref(temp_tag_ref.tag_ref_name, temp_tag_ref.post_multiplier, temp_tag_ref)
+
+        print("-------------------------------------------")
+        for key, value in temp_tag_refs.items():
+            print(key + ": " + str(value))
+        print("-------------------------------------------")
+
+        return sort_tag_refs_dict_with_minnimum(temp_tag_refs, MINNIMUM_OCCURENCE_COUNT)
 
 
 class tag_ref(object):
+    def __init__(self, name, count, post):
+        self.name = name
+        self.count = count
+        self.post = post
+
+class post_tag(object):
     def __init__(self, tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
         self.tag_post_pid        = tag_post_pid
         self.parent_tag_name     = parent_tag_name
@@ -65,8 +85,6 @@ class tag_ref(object):
         self.instagram_post_id   = instagram_post_id
         self.instagram_post_date = instagram_post_date
         self.post_multiplier     = post_multiplier
-        self.count               = 0
-
 
 def create_table(conn, create_table_sql):
     """ create a table from the create_table_sql statement
@@ -149,7 +167,7 @@ def get_posts_from_instagram(tag_name):
     top_posts  = party_data['graphql']['hashtag']['edge_hashtag_to_top_posts']['edges']
 
     # Get tags in comment of post
-    all_tag_refs = []
+    all_tag_posts = []
     for post in (new_posts + top_posts):
         post_id = post['node']['id']
         post_date = post['node']['taken_at_timestamp']
@@ -160,24 +178,24 @@ def get_posts_from_instagram(tag_name):
             post['node']['edge_media_preview_like']['count'] = 1
 
         # Used to weight more popular posts higher
-        post_multiplyer = post['node']['edge_media_to_comment']['count'] + post['node']['edge_media_preview_like']['count']
+        post_multiplier = post['node']['edge_media_to_comment']['count'] + post['node']['edge_media_preview_like']['count']
 
         all_tags_in_comments = []
         for comment in post['node']['edge_media_to_caption']['edges']:
             all_tags_in_comments = all_tags_in_comments + get_tags(comment['node']['text'])
 
-        for tag in all_tags_in_comments:
+        for temp_tag_name in all_tags_in_comments:
             # tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
 
-            all_tag_refs.append(tag_ref(-1,
+            all_tag_posts.append(post_tag(-1,
                                         tag_name,
-                                        tag,
+                                        temp_tag_name,
                                         post_id,
                                         post_date,
-                                        post_multiplyer))
+                                        post_multiplier))
 
 
-    return tag(tag_name, -1, all_tag_refs)
+    return tag(tag_name, -1, all_tag_posts)
 
 def get_posts_from_db(conn, tag_name):
     """ get all posts from db related to tag
@@ -194,31 +212,56 @@ def get_posts_from_db(conn, tag_name):
     local_posts = select_from_table(conn, sql_select_post_ids_from_tag_posts.format(tag_name))
     return local_posts.fetchall()
 
-def get_new_tag_refs(conn, tag_name):
+def get_new_tag_posts(conn, tag_name):
     posts_from_db_list   = [] #get_posts_from_db(conn, tag_name)
-    tag_data = get_posts_from_instagram(tag_name)
+    tag_with_posts = get_posts_from_instagram(tag_name)
 
-    new_tag_refs = []
-    for temp_tag_ref in tag_data.all_tag_refs:
-        if temp_tag_ref.instagram_post_id not in posts_from_db_list:
-            new_tag_refs.append(temp_tag_ref)
+    new_post_tags = []
+    # Filter out the posts we have already indexed
+    for temp_post_tags in tag_with_posts.all_post_tags:
+        if temp_post_tags.instagram_post_id not in posts_from_db_list:
+            new_post_tags.append(temp_post_tags)
 
-    return new_tag_refs
+    tag_with_posts.all_post_tags = new_post_tags
+    return tag_with_posts
 
-def sort_post_data_list(all_posts):
-    for _ in range (len(all_posts)):
+def sort_tag_refs_dict_with_minnimum(unsorted_tag_refs, minnumum_occurences):
+    """ Sort the tag refs
 
-        largest_tag = copy.deepcopy(all_posts[0])
-        position = 0
+    Args:
+        unsorted_tag_refs (tag_ref[]): List of unsorted tag refs
+        minnumum_occurences (int): Minimum number of tag occurences for it to count
 
-        for post in all_posts:
-            if post['count'] > largest_tag['count']:
-                largest_tag = copy.deepcopy(post)
+    Returns:
+        yield tag_ref: The next highest tag_ref
+    """
 
-        del all_posts[position]
+    # Remove tag_refs that don't meet the minimum
+    good_tag_refs = {}
+    for temp_tag_name, temp_tag_ref in unsorted_tag_refs.items():
+        if temp_tag_ref.count > minnumum_occurences:
+            good_tag_refs[temp_tag_name] = temp_tag_ref
+
+    for _ in range (len(good_tag_refs)):
+
+        largest_tag = list(good_tag_refs.values())[0]
+        position = largest_tag.name
+
+        # Find the next largest tag
+        for temp_tag_name, temp_tag_ref in good_tag_refs.items():
+            if temp_tag_ref.count > largest_tag.count and temp_tag_ref.count > minnumum_occurences:
+
+                largest_tag = temp_tag_ref
+                position = temp_tag_name
+
+        if largest_tag == None:
+            return
+
+        del good_tag_refs[position]
         yield largest_tag
 
 def main():
+    # Validate tables are created
     create_table(conn, sql_create_tags_table)
     create_table(conn, sql_create_tag_post_table)
     # create_table(conn, sql_create_post_tag_ref_unique_index)
@@ -240,28 +283,15 @@ def main():
         print("------------------------------------------------------")
         print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name + " --------------------")
         print("")
-        all_tag_new_tags = get_new_tag_refs(conn, tag_name)
+        # Populate the posts in the tag object
+        tag_with_posts = get_new_tag_posts(conn, tag_name)
 
-        # TODO(tjcocozz): Now that we have a list of tag_refs objs returned
-        # we should count our occurences and display the output
-        all_ref_tags = {}
-        # Get tags in comment of post
-        for tag_data in all_tag_new_tags:
-            if tag.name in all_ref_tags:
-                post_data['count'] = post_data['count'] + post_data['multiplier']
-            else:
-                post_data['count'] = post_data['multiplier']
+        ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
 
-        # Insert tag data into DB
-        for post_data in sort_post_data_list(all_ref_tags):
-
-            if post_data['count'] < MINNIMUM_OCCURENCE_COUNT:
-                break
-
-            print ("TAG: {}".format(tag))
-            print ("   Count: {}".format(post_data['count']))
-            # (parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier)
-            insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name, ref_tag, post_data['count']))
+        for ordered_tag_ref in ordered_tag_refs:
+            print(ordered_tag_ref.name)
+            print("   " + str(ordered_tag_ref.count))
+            # insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name, ref_tag, post_data['count']))
 
 
         # Set sync time on tag to show we are done updating it
