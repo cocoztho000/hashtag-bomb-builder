@@ -45,7 +45,7 @@ sql_insert_tag_ref_table = "INSERT OR REPLACE INTO tag_refs (parent_tag_name, ta
 # TODO(tom): use: `ON DUPLICATE KEY UPDATE sync_date={1};"` when moving to mysql
 sql_insert_tags_table    = "INSERT OR REPLACE INTO tags (name, sync_date) VALUES ('{0}', '{1}');"
 
-sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_posts WHERE parent_tag_name='{0}';"
+sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_refs WHERE parent_tag_name='{0}';"
 
 
 class tag(object):
@@ -208,18 +208,27 @@ def get_posts_from_db(conn, tag_name):
         ...
     ]
     """
-
+    rows_to_return = []
     local_posts = select_from_table(conn, sql_select_post_ids_from_tag_posts.format(tag_name))
-    return local_posts.fetchall()
+    while True:
+        row = local_posts.fetchone()
+        if row == None:
+            break
+        for item in row:
+            rows_to_return.append(item)
+            print(item)
+
+    return rows_to_return
 
 def get_new_tag_posts(conn, tag_name):
-    posts_from_db_list   = [] #get_posts_from_db(conn, tag_name)
+    post_ids_from_db_list = get_posts_from_db(conn, tag_name)
+
     tag_with_posts = get_posts_from_instagram(tag_name)
 
     new_post_tags = []
     # Filter out the posts we have already indexed
     for temp_post_tags in tag_with_posts.all_post_tags:
-        if temp_post_tags.instagram_post_id not in posts_from_db_list:
+        if temp_post_tags.instagram_post_id not in post_ids_from_db_list:
             new_post_tags.append(temp_post_tags)
 
     tag_with_posts.all_post_tags = new_post_tags
@@ -274,11 +283,9 @@ def main():
     # Get data for tag
     for num, tag_name in enumerate(tag_names):
         # Get the current time
-        now          = datetime.datetime.now(datetime.timezone.utc)
-        current_time = calendar.timegm(now.utctimetuple())
 
         # Set sync time on tag to show we are updating it
-        #insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
+        insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
 
         print("------------------------------------------------------")
         print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name + " --------------------")
@@ -288,14 +295,24 @@ def main():
 
         ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
 
+        count = 0
         for ordered_tag_ref in ordered_tag_refs:
+            count += 1
             print(ordered_tag_ref.name)
             print("   " + str(ordered_tag_ref.count))
-            # insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name, ref_tag, post_data['count']))
+            insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name,
+                                                                    ordered_tag_ref.name,
+                                                                    ordered_tag_ref.post.instagram_post_id,
+                                                                    ordered_tag_ref.post.instagram_post_date,
+                                                                    ordered_tag_ref.count))
 
+        now          = datetime.datetime.now(datetime.timezone.utc)
+        current_time = calendar.timegm(now.utctimetuple())
 
         # Set sync time on tag to show we are done updating it
-        #insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
+        insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
+
+        print("NEW POSTS: {}".format(count))
 
 
     # print('DUMPING TAGS TABLE')
