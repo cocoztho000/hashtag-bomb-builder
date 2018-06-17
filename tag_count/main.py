@@ -1,13 +1,11 @@
 
 import requests
 import re
-import json
-import copy
 import datetime
 import calendar
 import sqlite3
-import copy
-from collections import OrderedDict
+import hashlib
+import time
 
 conn = sqlite3.connect('instagram.db')
 
@@ -46,6 +44,8 @@ sql_insert_tag_ref_table = "INSERT OR REPLACE INTO tag_refs (parent_tag_name, ta
 sql_insert_tags_table    = "INSERT OR REPLACE INTO tags (name, sync_date) VALUES ('{0}', '{1}');"
 
 sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_refs WHERE parent_tag_name='{0}';"
+
+sql_select_from_names_tags = "SELECT name FROM tags;"
 
 
 class tag(object):
@@ -140,6 +140,24 @@ def get_tags(comment):
 
     return list(set(hashtags))
 
+def get_all_comments_from_insta(tag_name):
+    tag_url    = 'https://www.instagram.com/explore/tags/{0}/?__a=1'
+    response   = requests.get(tag_url.format(tag_name))
+
+    if not response.ok:
+        return []
+
+    party_data = response.json()
+    new_posts  = party_data['graphql']['hashtag']['edge_hashtag_to_media']['edges']
+    top_posts  = party_data['graphql']['hashtag']['edge_hashtag_to_top_posts']['edges']
+
+    # Get tags in comment of post
+    all_comments = []
+    for post in (new_posts + top_posts):
+        for comment in post['node']['edge_media_to_caption']['edges']:
+            all_comments.append(comment['node']['text'])
+    return all_comments
+
 def get_posts_from_instagram(tag_name):
     """ get all posts from intagram related to tag
     :param tag_name: hashtag to get recent posts for
@@ -180,12 +198,15 @@ def get_posts_from_instagram(tag_name):
         # Used to weight more popular posts higher
         post_multiplier = post['node']['edge_media_to_comment']['count'] + post['node']['edge_media_preview_like']['count']
 
+        all_comments = ""
         all_tags_in_comments = []
         for comment in post['node']['edge_media_to_caption']['edges']:
+            all_comments += comment['node']['text']
+
             all_tags_in_comments = all_tags_in_comments + get_tags(comment['node']['text'])
 
+        post_id = hashlib.sha512(all_comments.encode('utf-8', 'ignore')).hexdigest()
         for temp_tag_name in all_tags_in_comments:
-            # tag_post_pid, parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier):
 
             all_tag_posts.append(post_tag(-1,
                                         tag_name,
@@ -193,7 +214,6 @@ def get_posts_from_instagram(tag_name):
                                         post_id,
                                         post_date,
                                         post_multiplier))
-
 
     return tag(tag_name, -1, all_tag_posts)
 
@@ -216,9 +236,31 @@ def get_posts_from_db(conn, tag_name):
             break
         for item in row:
             rows_to_return.append(item)
-            print(item)
 
     return rows_to_return
+
+def get_tags_from_db(conn):
+    """ get all posts from db related to tag
+    :param tag_name: hashtag to get recent posts for
+    :return: list of post IDs
+    [
+        'tag1',
+        'tag2',
+        'tag3',
+        ...
+    ]
+    """
+    rows_to_return = []
+    local_tags = select_from_table(conn, sql_select_from_names_tags)
+    while True:
+        row = local_tags.fetchone()
+        if row == None:
+            break
+        for item in row:
+            rows_to_return.append(item)
+
+    return rows_to_return
+
 
 def get_new_tag_posts(conn, tag_name):
     post_ids_from_db_list = get_posts_from_db(conn, tag_name)
@@ -269,59 +311,50 @@ def sort_tag_refs_dict_with_minnimum(unsorted_tag_refs, minnumum_occurences):
         del good_tag_refs[position]
         yield largest_tag
 
+def calc_sleep_interval(number_of_tags):
+    return (60 * 60) / number_of_tags
+
 def main():
     # Validate tables are created
     create_table(conn, sql_create_tags_table)
     create_table(conn, sql_create_tag_post_table)
-    # create_table(conn, sql_create_post_tag_ref_unique_index)
+    while(True):
+        all_tags_to_sync = get_tags_from_db(conn)
+        sleep_interval = calc_sleep_interval(len(all_tags_to_sync))
 
-    temp_tags     = 'party' # input('Enter your tag names with spaces in-between (no hashtags): ')
-    temp_tags     = temp_tags.replace('#', '')
-    tag_names     = temp_tags.split(' ')
-    tag_names     = [x.strip() for x in tag_names]
+        for num, tag_name in enumerate(all_tags_to_sync):
+            # Get the current time
 
-    # Get data for tag
-    for num, tag_name in enumerate(tag_names):
-        # Get the current time
+            # Set sync time on tag to show we are updating it
+            insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
 
-        # Set sync time on tag to show we are updating it
-        insert_into_table(conn, sql_insert_tags_table.format(tag_name, -1))
+            print("------------------------------------------------------")
+            print("Gathering data for: " + str(num + 1) + "/" + str(len(all_tags_to_sync)) + " - " + tag_name + " --------------------")
+            print("")
+            # Populate the posts in the tag object
+            tag_with_posts = get_new_tag_posts(conn, tag_name)
 
-        print("------------------------------------------------------")
-        print("Gathering data for: " + str(num + 1) + "/" + str(len(tag_names)) + " - " + tag_name + " --------------------")
-        print("")
-        # Populate the posts in the tag object
-        tag_with_posts = get_new_tag_posts(conn, tag_name)
+            ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
 
-        ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
+            count = 0
+            for ordered_tag_ref in ordered_tag_refs:
+                count += 1
+                insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name,
+                                                                        ordered_tag_ref.name,
+                                                                        ordered_tag_ref.post.instagram_post_id,
+                                                                        ordered_tag_ref.post.instagram_post_date,
+                                                                        ordered_tag_ref.count))
 
-        count = 0
-        for ordered_tag_ref in ordered_tag_refs:
-            count += 1
-            print(ordered_tag_ref.name)
-            print("   " + str(ordered_tag_ref.count))
-            insert_into_table(conn, sql_insert_tag_ref_table.format(tag_name,
-                                                                    ordered_tag_ref.name,
-                                                                    ordered_tag_ref.post.instagram_post_id,
-                                                                    ordered_tag_ref.post.instagram_post_date,
-                                                                    ordered_tag_ref.count))
+            now          = datetime.datetime.now(datetime.timezone.utc)
+            current_time = calendar.timegm(now.utctimetuple())
 
-        now          = datetime.datetime.now(datetime.timezone.utc)
-        current_time = calendar.timegm(now.utctimetuple())
+            # Set sync time on tag to show we are done updating it
+            insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
 
-        # Set sync time on tag to show we are done updating it
-        insert_into_table(conn, sql_insert_tags_table.format(tag_name, current_time))
+            print("NEW POSTS: {}".format(count))
 
-        print("NEW POSTS: {}".format(count))
-
-
-    # print('DUMPING TAGS TABLE')
-    # for row in conn.execute("SELECT * FROM tags"):
-    #     print(row)
-
-    # print('DUMPING TAG_REF TABLE')
-    # for row in conn.execute("SELECT * FROM tag_ref"):
-    #     print(row)
+            print("SLEEPING: " + str(sleep_interval))
+            time.sleep(sleep_interval)
 
 
 if __name__ == '__main__':
