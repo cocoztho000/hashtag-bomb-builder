@@ -12,9 +12,10 @@ class instaCountBackground(object):
 
     # Table containing the data behind a tag
     sql_create_tags_table = """ CREATE TABLE IF NOT EXISTS tags (
-                                    tag_id    integer PRIMARY KEY AUTOINCREMENT,
-                                    name      text   NOT NULL UNIQUE,
-                                    sync_date BIGINT NOT NULL
+                                    tag_id           integer PRIMARY KEY AUTOINCREMENT,
+                                    name             text   NOT NULL UNIQUE,
+                                    sync_date        BIGINT NOT NULL
+                                    user_looked_date BIGINT NOT NULL
                                 );
                             """
 
@@ -40,7 +41,7 @@ class instaCountBackground(object):
     # TODO(tom): use: `ON DUPLICATE KEY UPDATE occurences={1};"` when moving to mysql
     sql_insert_tag_ref_table = "INSERT OR REPLACE INTO tag_refs (parent_tag_name, tag_ref_name, instagram_post_id, instagram_post_date, post_multiplier) VALUES ('{}', '{}', '{}', '{}', '{}');"
     # TODO(tom): use: `ON DUPLICATE KEY UPDATE sync_date={1};"` when moving to mysql
-    sql_insert_tags_table    = "INSERT OR REPLACE INTO tags (name, sync_date) VALUES ('{0}', '{1}');"
+    sql_insert_tags_table    = "INSERT OR REPLACE INTO tags (name, sync_date, user_looked_date) VALUES ('{0}', '{1}', '{2}');"
 
     sql_select_post_ids_from_tag_posts = "SELECT instagram_post_id FROM tag_refs WHERE parent_tag_name='{0}';"
 
@@ -86,6 +87,28 @@ class instaCountBackground(object):
         except Exception as e:
             print(e)
             raise e
+
+    def add_or_udpate_tag_by_user(self, conn, tag, user_looked_date):
+        ''' Add a tag to the DB by the user so update the
+        `user_looked_date` field in the DB
+        :param conn: Connection object
+        :param tag: tag string
+        '''
+        # TODO(tom) Don't modify the 2nd field. This is used to keep track the last time we synced
+        # the tag.
+        self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, -1, user_looked_date))
+
+
+    def add_or_udpate_tag_by_background(self, conn, tag, sync_date):
+        ''' Add a tag to the DB by the user so update the
+        `user_looked_date` field in the DB
+        :param conn: Connection object
+        :param tag: tag string
+        '''
+
+        # TODO(tom) Don't modify the 3rd field. This is used to keep track the last time a user looked
+        # at a tag.
+        self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, sync_date, -1))
 
     def get_tags(self, comment):
         # TODO(tom): write test to figure out while there are duplicates in the response
@@ -210,6 +233,9 @@ class instaCountBackground(object):
             ...
         ]
         """
+
+        # TODO(tom): tags with `user_looked_date`==-1 should be first since these
+        # have just been added by the user and should be synced asap
         rows_to_return = []
         local_tags = self.select_from_table(conn, self.sql_select_from_names_tags)
         while True:
@@ -239,6 +265,9 @@ class instaCountBackground(object):
     def calc_sleep_interval(self, number_of_tags):
         return (60 * 60) / number_of_tags
 
+    def get_current_time(self):
+        now          = datetime.datetime.now(datetime.timezone.utc)
+        return calendar.timegm(now.utctimetuple())
     def main(self):
         # Validate tables are created
         self.create_table(self.conn, self.sql_create_tags_table)
@@ -251,7 +280,7 @@ class instaCountBackground(object):
                 # Get the current time
 
                 # Set sync time on tag to show we are updating it
-                self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, -1))
+                add_or_udpate_tag_by_background(conn, tag_name, -1)
 
                 print("------------------------------------------------------")
                 print("Gathering data for: " + str(num + 1) + "/" + str(len(all_tags_to_sync)) + " - " + tag_name + " --------------------")
@@ -274,11 +303,12 @@ class instaCountBackground(object):
                             ordered_tag_ref.post.instagram_post_date,
                             ordered_tag_ref.count))
 
-                now          = datetime.datetime.now(datetime.timezone.utc)
-                current_time = calendar.timegm(now.utctimetuple())
+                current_time = get_current_time()
 
                 # Set sync time on tag to show we are done updating it
-                self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, current_time))
+                # TODO(tom) Don't modify the 3rd field. This is used to keep track the last time a user looked
+                # at a tag.
+                self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, current_time, current_time))
 
                 print("NEW POSTS: {}".format(count))
 

@@ -40,6 +40,15 @@ class tagCountApi(Resource):
         conn.close()
         return response
 
+    def put(self, tag_name):
+        conn = sqlite3.connect('instagram.db')
+        current_time = tag_with_posts.get_current_time()
+
+        tag_with_posts.add_or_udpate_tag_by_user(conn, tag_name, current_time)
+
+        conn.close()
+        return self.get(tag_name)
+
 api.add_resource(tagCountApi, '/tag/<tag_name>')
 # api.add_resource(tagCountApi, '/bar', endpoint='bar')
 
