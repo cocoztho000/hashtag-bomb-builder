@@ -27,30 +27,32 @@ api = Api(app)
 class tagCountApi(Resource):
 
     def __init__(self):
+        self.v1 = 'v1'
         self.instaCountBack = instaCountBackground()
 
-    def get(self, tag_name):
-        conn = sqlite3.connect('instagram.db')
-        tag_with_posts = self.instaCountBack.get_new_tag_posts(conn, tag_name)
-        ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
-        response = {}
-        for ordered_tag_ref in ordered_tag_refs:
-            response[ordered_tag_ref.name] = ordered_tag_ref.count
+    def get(self, version, tag_name):
+        if version == self.v1:
+            conn = sqlite3.connect('instagram.db')
+            tag_with_posts = self.instaCountBack.get_new_tag_posts(conn, tag_name)
+            ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
+            response = {}
+            for ordered_tag_ref in ordered_tag_refs:
+                response[ordered_tag_ref.name] = ordered_tag_ref.count
 
-        conn.close()
-        return response
+            conn.close()
+            return response
 
-    def put(self, tag_name):
-        conn = sqlite3.connect('instagram.db')
-        current_time = tag_with_posts.get_current_time()
+    def put(self, version, tag_name):
+        if version == self.v1:
+            conn = sqlite3.connect('instagram.db')
+            current_time = self.instaCountBack.get_current_time()
 
-        tag_with_posts.add_or_udpate_tag_by_user(conn, tag_name, current_time)
+            self.instaCountBack.add_or_udpate_tag_by_user(conn, tag_name, current_time)
 
-        conn.close()
-        return self.get(tag_name)
+            conn.close()
+            return self.get(self.v1, tag_name)
 
-api.add_resource(tagCountApi, '/tag/<tag_name>')
-# api.add_resource(tagCountApi, '/bar', endpoint='bar')
+api.add_resource(tagCountApi, '/<version>/tag/<tag_name>')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -14,7 +14,7 @@ class instaCountBackground(object):
     sql_create_tags_table = """ CREATE TABLE IF NOT EXISTS tags (
                                     tag_id           integer PRIMARY KEY AUTOINCREMENT,
                                     name             text   NOT NULL UNIQUE,
-                                    sync_date        BIGINT NOT NULL
+                                    sync_date        BIGINT NOT NULL,
                                     user_looked_date BIGINT NOT NULL
                                 );
                             """
@@ -96,7 +96,7 @@ class instaCountBackground(object):
         '''
         # TODO(tom) Don't modify the 2nd field. This is used to keep track the last time we synced
         # the tag.
-        self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, -1, user_looked_date))
+        self.insert_into_table(conn, self.sql_insert_tags_table.format(tag, -1, user_looked_date))
 
 
     def add_or_udpate_tag_by_background(self, conn, tag, sync_date):
@@ -108,7 +108,7 @@ class instaCountBackground(object):
 
         # TODO(tom) Don't modify the 3rd field. This is used to keep track the last time a user looked
         # at a tag.
-        self.insert_into_table(self.conn, self.sql_insert_tags_table.format(tag_name, sync_date, -1))
+        self.insert_into_table(conn, self.sql_insert_tags_table.format(tag_name, sync_date, -1))
 
     def get_tags(self, comment):
         # TODO(tom): write test to figure out while there are duplicates in the response
@@ -263,6 +263,7 @@ class instaCountBackground(object):
         return tag_with_posts
 
     def calc_sleep_interval(self, number_of_tags):
+
         return (60 * 60) / number_of_tags
 
     def get_current_time(self):
@@ -274,6 +275,7 @@ class instaCountBackground(object):
         self.create_table(self.conn, self.sql_create_tag_post_table)
         while(True):
             all_tags_to_sync = self.get_tags_from_db(self.conn)
+
             sleep_interval = self.calc_sleep_interval(len(all_tags_to_sync))
 
             for num, tag_name in enumerate(all_tags_to_sync):
