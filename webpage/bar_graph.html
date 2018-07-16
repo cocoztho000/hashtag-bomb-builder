@@ -22,7 +22,6 @@
         <canvas id="barChart"></canvas>
         <canvas id="myChart" width="500" height="300"></canvas>
     </div>
-    <!-- <div id="js-legend" class="chart-legend"> -->
 
     <script>
         function getDataset() {
@@ -97,7 +96,7 @@
                 data: barChartData,
                 options: {
                     title: {
-                        display: true,
+                        display: false,
                         text: 'Chart.js Bar Chart - Stacked'
                     },
                     tooltips: {
@@ -134,10 +133,10 @@
 
             console.log(window.myChart)
             console.log(window.myBar)
+
             // Allow For chart to be modified
             allSiteCharts.push(window.myBar);
             allSiteCharts.push(window.myChart);
-            // document.getElementById('js-legend').innerHTML = window.myBar.generateLegend();
         };
 
         function getCharts() {

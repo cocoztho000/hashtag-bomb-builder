@@ -6,3 +6,7 @@
 .search {
   .center-block();
 }
+.center {
+    float: none;
+    margin: 0 auto;
+}
