@@ -1,0 +1,188 @@
+
+
+            #leftSide, h1,  h3, #links, header, body, p, ul {
+                margin: 0 0 0 0;
+                padding: 0 0 0 0;
+            }
+
+            body {
+                background-color: #EEEEEE;
+                font-family: 'Lato',serif;
+
+
+            }
+            header {
+                padding: 0;
+                z-index: 2;
+                position: fixed;
+                /*background-image: url(../images/background.jpg);*/
+                background-position: 50% 0px;
+                display: inline-block;
+                width: 100%;
+                box-shadow:  0px 4px 6px 2px rgba(0, 0, 0, .5);
+            }
+
+            #header_overlay {
+                margin: 0;
+                z-index: 3;
+                padding-top: .2em;
+                display: inline-block;
+                padding-bottom: .2em;
+                width: 100%;
+                background-color: rgba(25, 118, 210, .8);
+                text-align: center;
+            }
+            #leftSide {
+                display: inline-block;
+                padding-left: 2%;
+                color: #FFF;
+            }
+            h3 {
+                margin-top: -2px;
+                padding-left: 5px;
+                font-weight: 100;
+                font-size: 15px;
+
+            }
+            h1 {
+                font-weight: 100;
+            }
+
+            #name_small {
+                height: 52px;
+
+
+            }
+
+            #contact_button:focus {
+                background-color: #EEEEEE;
+            }
+
+
+            #rightSide {
+                float: right;
+                padding-right: 2%;
+                line-height: 3.5em;
+            }
+
+            #links li {
+
+                display: inline-block;
+                padding: 0 20px 0 20px;
+                float: right;
+            }
+
+            #links a {
+                color: #FFF;
+                text-decoration: none;
+            }
+            #links li a:hover {
+                color: #CCCCCC;
+                cursor: pointer;
+            }
+
+            #header_top_button {
+                display: block;
+            }
+
+
+            footer {
+                text-align: center;
+                padding: 1em 0 1.5em 0;
+                background-color: #0D47A1;
+                display: inline-block;
+                width: 100%;
+                bottom: 0;
+            }
+
+            #linkFooter li {
+                text-align: left;
+                vertical-align: top;
+                display: inline-block;
+                padding: 0 20px 0 20px;
+            }
+
+            #linkFooter li div{
+                display: table;
+            }
+
+            #linkFooter .test {
+                color: #FFF;
+                text-decoration: none;
+            }
+
+
+            #linkFooter a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            #linkFooter a:hover {
+                color: #CCCCCC;
+                opacity: 0.4;
+                cursor: pointer;
+            }
+
+            .footer_title {
+                color: #FFF;
+            }
+            #linkFooter li img {
+                height: 40px;
+                padding-top: 3px;
+            }
+
+            /*
+            Set up header for mobile
+            */
+            @media (max-device-width: 1080px) {
+
+                #linkFooter li {
+                    display: block;
+                    text-align:  center;
+                }
+                #linkFooter li div {
+                    padding-bottom: 1%;
+                    margin: auto;
+                }
+                #links a {
+                    font-size: 2em;
+                }
+
+            }
+            @media (max-device-width: 580px) {
+                #header_top_button {
+                    display: none;
+                }
+            }
+
+
+
+
+            /*
+            Set up header for small view
+            */
+            @media (max-width: 630px) {
+                #name_big, #leftSide h3 {
+                    display: none;
+                }
+            }
+
+
+            @media (min-width: 630px) {
+                #name_small {
+                    display: none;
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
