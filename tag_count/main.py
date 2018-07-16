@@ -263,12 +263,12 @@ class instaCountBackground(object):
         return tag_with_posts
 
     def calc_sleep_interval(self, number_of_tags):
-
         return (60 * 60) / number_of_tags
 
     def get_current_time(self):
         now          = datetime.datetime.now(datetime.timezone.utc)
         return calendar.timegm(now.utctimetuple())
+
     def main(self):
         # Validate tables are created
         self.create_table(self.conn, self.sql_create_tags_table)

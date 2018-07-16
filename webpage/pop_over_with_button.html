@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="fuelux">
+<head lang="en">
+    <!-- styles -->
+    <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="http://www.fuelcdn.com/fuelux/3.3.0/css/fuelux.min.css" rel="stylesheet"/>
+    <link href="http://www.fuelcdn.com/fuelux-mctheme/1.1.0/css/fuelux-mctheme.min.css" rel="stylesheet"/>
+
+    <!-- scripts -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="http://www.fuelcdn.com/fuelux/3.3.0/js/fuelux.min.js"></script>
+
+    <script>
+        $(function() {
+            // initialize popover with dynamic content
+            $('#btnPopover').popover({
+                placement: 'bottom',
+                container: 'body',
+                html: true,
+                trigger: 'hover',
+                content: '<p>Popover is only dismissed when the "dismiss" button is explicity clicked, or when neither button nor popover is hovered over.</p><button type="button" class="btn btn-default popover-dismiss">dismiss</button>'
+            });
+
+            // prevent popover from being hidden on mouseout.
+            // only dismiss when explicity clicked (e.g. has .hide-popover)
+            $('#btnPopover').on('hide.bs.popover', function(evt) {
+                if(!$(evt.target).hasClass('hide-popover')) {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    evt.cancelBubble = true;
+                }
+            });
+
+            // reset helper class when dismissed
+            $('#btnPopover').on('hidden.bs.popover', function(evt) {
+                $(this).removeClass('hide-popover');
+            });
+
+
+            $('body').on('click', '.popover-dismiss', function() {
+                // add helper class to force dismissal
+                $('#btnPopover').addClass('hide-popover');
+
+                // call method to hide popover
+                $('#btnPopover').popover('hide');
+            });
+
+          $('#btnPopover').data('overButton', false);
+          $('#btnPopover').data('overPopover', false);
+          $.fn.closePopover = function(){
+            var $this = $(this);
+
+            if(!$this.data('overPopover') && !$this.data('overButton')){
+              $this.addClass('hide-popover');
+              $this.popover('hide');
+            }
+          }
+
+          //set flags when mouse enters the button or the popover.
+          //When the mouse leaves unset immediately, wait a second (to allow the mouse to enter again or enter the other) and then test to see if the mouse is no longer over either. If not, close popover.
+          $('#btnPopover').on('mouseenter', function(evt){
+            $(this).data('overButton', true);
+          });
+          $('#btnPopover').on('mouseleave', function(evt){
+            var $btn = $(this);
+            $btn.data('overButton', false);
+
+            setTimeout(function() {$btn.closePopover();}, 200);
+
+          });
+
+          $('#btnPopover').on('shown.bs.popover', function () {
+            var $btn = $(this);
+            $('.popover-content').on('mouseenter', function (evt){
+              $btn.data('overPopover', true);
+            });
+            $('.popover-content').on('mouseleave', function (evt){
+              $btn.data('overPopover', false);
+
+              setTimeout(function() {$btn.closePopover();}, 200);
+            });
+          });
+        });
+    </script>
+</head>
+<body style="padding:25px;">
+
+    <button type="button" id="btnPopover" class="btn btn-primary">show popover</button>
+
+
+<script id="jsbin-source-html" type="text/html"><!DOCTYPE html>
+<html class="fuelux">
+<head lang="en">
+    <\!-- styles -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="//www.fuelcdn.com/fuelux/3.3.0/css/fuelux.min.css" rel="stylesheet"/>
+    <link href="//www.fuelcdn.com/fuelux-mctheme/1.1.0/css/fuelux-mctheme.min.css" rel="stylesheet"/>
+
+    <\!-- scripts -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"><\/script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"><\/script>
+    <script src="//www.fuelcdn.com/fuelux/3.3.0/js/fuelux.min.js"><\/script>
+
+    <script>
+        $(function() {
+            // initialize popover with dynamic content
+            $('#btnPopover').popover({
+                placement: 'bottom',
+                container: 'body',
+                html: true,
+                trigger: 'hover',
+                content: '<p>Popover is only dismissed when the "dismiss" button is explicity clicked, or when neither button nor popover is hovered over.</p><button type="button" class="btn btn-default popover-dismiss">dismiss</button>'
+            });
+
+            // prevent popover from being hidden on mouseout.
+            // only dismiss when explicity clicked (e.g. has .hide-popover)
+            $('#btnPopover').on('hide.bs.popover', function(evt) {
+                if(!$(evt.target).hasClass('hide-popover')) {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    evt.cancelBubble = true;
+                }
+            });
+
+            // reset helper class when dismissed
+            $('#btnPopover').on('hidden.bs.popover', function(evt) {
+                $(this).removeClass('hide-popover');
+            });
+
+
+            $('body').on('click', '.popover-dismiss', function() {
+                // add helper class to force dismissal
+                $('#btnPopover').addClass('hide-popover');
+
+                // call method to hide popover
+                $('#btnPopover').popover('hide');
+            });
+
+          $('#btnPopover').data('overButton', false);
+          $('#btnPopover').data('overPopover', false);
+          $.fn.closePopover = function(){
+            var $this = $(this);
+
+            if(!$this.data('overPopover') && !$this.data('overButton')){
+              $this.addClass('hide-popover');
+              $this.popover('hide');
+            }
+          }
+
+          //set flags when mouse enters the button or the popover.
+          //When the mouse leaves unset immediately, wait a second (to allow the mouse to enter again or enter the other) and then test to see if the mouse is no longer over either. If not, close popover.
+          $('#btnPopover').on('mouseenter', function(evt){
+            $(this).data('overButton', true);
+          });
+          $('#btnPopover').on('mouseleave', function(evt){
+            var $btn = $(this);
+            $btn.data('overButton', false);
+
+            setTimeout(function() {$btn.closePopover();}, 200);
+
+          });
+
+          $('#btnPopover').on('shown.bs.popover', function () {
+            var $btn = $(this);
+            $('.popover-content').on('mouseenter', function (evt){
+              $btn.data('overPopover', true);
+            });
+            $('.popover-content').on('mouseleave', function (evt){
+              $btn.data('overPopover', false);
+
+              setTimeout(function() {$btn.closePopover();}, 200);
+            });
+          });
+        });
+    <\/script>
+</head>
+<body style="padding:25px;">
+
+    <button type="button" id="btnPopover" class="btn btn-primary">show popover</button>
+
+</body>
+</html></script>
+
+</body>
+</html>
