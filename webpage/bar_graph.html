@@ -19,6 +19,7 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <link rel="stylesheet" type="text/css" href="css/header.css">
+  <link rel="stylesheet" type="text/css" href="css/loader.css">
 
 </head>
 
@@ -51,7 +52,7 @@
             <div class="row search">
                 <div class="col-lg-6 center">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Comma Seperated list of tags">
+                        <input type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="button">Search</button>
                         </span>
@@ -59,10 +60,16 @@
                 </div><!-- /.col-lg-6 -->
             </div>
         </div>
+        <div class="load-bar">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
 
     </header>
 
     <div style="height: 110px"></div>
+
     <div style="text-align: center;">
     <div style="width: 50%; text-align:center; display: inline-block;">
         <canvas id="barChart"></canvas>
@@ -70,7 +77,14 @@
     <div style="width: 50%; display: inline-block;">
         <canvas id="myChart" width="500" height="300"></canvas>
     </div>
-    <code style="width: 60%" id="tags">#city #run #woo #yum</code>
+    <div id="codeBlockContainer" style="text-align: center;">
+        <div id="codeBlock">
+            <div id="copyCodeBlock">copy</div>
+            <code  id="tags"></code>
+        </div>
+    </div>
+    <input type="text" value="Hello World" id="holdtext" style="display: none;"></input>
+
 </div>
     <script>
         function getDataset() {
@@ -130,25 +144,36 @@
             var returnData = {};
 
             tempDataset.forEach(function(tempData){
-                returnData[tempData["label"]] = true;
+                returnData[tempData["label"]] = false;
             });
             return returnData;
         }
         var allTags = {};
 
-        function updateTagBlock() {
+        function getTagSting() {
             var tagText = "";
-            for (var key in dictionary) {
+            var tempTag = "";
 
-            }
-
-            allTags.forEach(function(tag) {
-                if (!tag.includes("#")){
-                    tag = "#" + tag;
+            for (var key in allTags) {
+                tempTag = key;
+                if(allTags[key]){
+                    continue;
                 }
-                tagText = tagText.concat(" " + tag);
-            });
-            document.getElementById('tags').innerHTML = 'hi';
+
+                if (!tempTag.includes("#")){
+                    tempTag = "#" + allTags[key];
+                }
+                tagText = tagText.concat(" " + tempTag);
+            }
+            return tagText;
+        }
+
+        function updateTagBlock() {
+            tagText = getTagSting();
+            document.getElementById('tags').innerHTML = tagText;
+
+            // When tag block changes reset copy button
+            resetCopyButton();
         }
 
         var backgrounds = randomColor({count: 5, luminosity: 'light'});
@@ -224,6 +249,11 @@
             return allSiteCharts
         }
 
+        function resetCopyButton() {
+            var copyButton = document.getElementById("copyCodeBlock");
+            copyButton.innerHTML = "copy";
+        }
+
         function newLegendClickHandler (e, legendItem) {
             var index = legendItem.datasetIndex;
             var hideData = !legendItem.hidden;
@@ -240,8 +270,25 @@
                     siteChart.update();
                 }
             });
+            allTags[legendItem.text] = hideData
+            updateTagBlock();
             console.log(legendItem)
         }
+
+        $("#copyCodeBlock").click(function() {
+            var holdtext = document.getElementById("tags");
+            var copyButton = document.getElementById("copyCodeBlock");
+
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(holdtext);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+
+            document.execCommand("copy");
+            copyButton.innerHTML = "copied to clipboard";
+        });
 
     </script>
 </body>
