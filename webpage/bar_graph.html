@@ -14,15 +14,64 @@
     </style>
     <link rel="stylesheet" href="css/index.css">
     <script src="js/randomColor.js"></script>
+  <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/search.css" rel="stylesheet"/>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/header.css">
 
 </head>
 
 <body>
-    <div style="width: 75%">
+    <header >
+        <div id="header_overlay">
+            <div id="leftSide">
+                <h1 id="name_big">
+                    Tag Helper
+                </h1>
+                <!-- <img id="name_small" src="images/logo.ico" alt="name small"> -->
+                <h3>Discover your target audience</h3>
+            </div>
+            <div id="rightSide">
+                <!-- <ul id="links">
+                    <li>
+                        <a id="projects_button" >Projects</a>
+                    </li>
+                    <li>
+                        <a id="skills_button">My Skills</a>
+                    </li>
+                    <li>
+                        <a  id="resume_button" >Resume</a>
+                    </li>
+                    <li>
+                        <a id="header_top_button">Top</a>
+                    </li>
+                </ul> -->
+            </div>
+            <div class="row search">
+                <div class="col-lg-6 center">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Comma Seperated list of tags">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button">Search</button>
+                        </span>
+                    </div><!-- /input-group -->
+                </div><!-- /.col-lg-6 -->
+            </div>
+        </div>
+
+    </header>
+
+    <div style="height: 110px"></div>
+    <div style="text-align: center;">
+    <div style="width: 50%; text-align:center; display: inline-block;">
         <canvas id="barChart"></canvas>
+    </div>
+    <div style="width: 50%; display: inline-block;">
         <canvas id="myChart" width="500" height="300"></canvas>
     </div>
-
+    <code style="width: 60%" id="tags">#city #run #woo #yum</code>
+</div>
     <script>
         function getDataset() {
             return [{
@@ -76,13 +125,39 @@
             return returnData;
         }
 
+        function getDatasetTags() {
+            var tempDataset = getDataset();
+            var returnData = {};
+
+            tempDataset.forEach(function(tempData){
+                returnData[tempData["label"]] = true;
+            });
+            return returnData;
+        }
+        var allTags = {};
+
+        function updateTagBlock() {
+            var tagText = "";
+            for (var key in dictionary) {
+
+            }
+
+            allTags.forEach(function(tag) {
+                if (!tag.includes("#")){
+                    tag = "#" + tag;
+                }
+                tagText = tagText.concat(" " + tag);
+            });
+            document.getElementById('tags').innerHTML = 'hi';
+        }
+
         var backgrounds = randomColor({count: 5, luminosity: 'light'});
         var barChartData = {
             labels: ['#party'],
             datasets: getDataset(),
         };
 
-        var allSiteCharts = []
+        var allSiteCharts = [];
 
         window.onload = function() {
 
@@ -106,6 +181,9 @@
                     responsive: true,
                     scales: {
                         yAxes: [{
+                            stacked: true
+                        }],
+                        xAxes: [{
                             stacked: true
                         }]
                     },
@@ -137,6 +215,9 @@
             // Allow For chart to be modified
             allSiteCharts.push(window.myBar);
             allSiteCharts.push(window.myChart);
+
+            allTags = getDatasetTags();
+            updateTagBlock();
         };
 
         function getCharts() {
@@ -159,6 +240,7 @@
                     siteChart.update();
                 }
             });
+            console.log(legendItem)
         }
 
     </script>

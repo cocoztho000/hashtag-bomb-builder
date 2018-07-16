@@ -34,7 +34,9 @@ class tagCountApi(Resource):
         if version == self.v1:
             conn = sqlite3.connect('instagram.db')
             tag_with_posts = self.instaCountBack.get_new_tag_posts(conn, tag_name)
+
             ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
+            ordered_tag_refs = tag_with_posts.get_all_ordered_tags()
             response = {}
             for ordered_tag_ref in ordered_tag_refs:
                 response[ordered_tag_ref.name] = ordered_tag_ref.count
