@@ -14,12 +14,13 @@
     </style>
     <link rel="stylesheet" href="css/index.css">
     <script src="js/randomColor.js"></script>
-  <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="css/search.css" rel="stylesheet"/>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="css/header.css">
-  <link rel="stylesheet" type="text/css" href="css/loader.css">
+    <script src="js/cookies.js"></script>
+    <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="css/search.css" rel="stylesheet"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/header.css">
+    <link rel="stylesheet" type="text/css" href="css/loader.css">
 
 </head>
 
@@ -87,6 +88,10 @@
 
 </div>
     <script>
+
+        var TAG_COOKIE_STR = "tags_disabled";
+        var TAG_SEARCHED_STR = "tags_searched";
+
         function getDataset() {
             return [{
                 label: '#usa',
@@ -140,11 +145,14 @@
         }
 
         function getDatasetTags() {
-            var tempDataset = getDataset();
-            var returnData = {};
+            var tempDataset          = getDataset();
+            var returnData           = {};
+            var previouslyHiddenTags = getCookieArray(TAG_COOKIE_STR);
 
             tempDataset.forEach(function(tempData){
-                returnData[tempData["label"]] = false;
+                // TODO(tom):find a way to save this in a cookie
+                // Mark the tag as hidden if its in the hidden tag cookie
+                returnData[tempData["label"]] = false //previouslyHiddenTags.includes(tempData["label"]);
             });
             return returnData;
         }
