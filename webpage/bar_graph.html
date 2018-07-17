@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/index.css">
     <script src="js/randomColor.js"></script>
     <script src="js/cookies.js"></script>
+    <script src="js/search.js"></script>
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="css/search.css" rel="stylesheet"/>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -92,70 +93,101 @@
         var TAG_COOKIE_STR = "tags_disabled";
         var TAG_SEARCHED_STR = "tags_searched";
 
-        function getDataset() {
-            return [{
-                label: '#usa',
-                backgroundColor: backgrounds[0],
-                data: [
-                    99,
-                ]
-            },{
-                label: '#city',
-                backgroundColor: backgrounds[1],
-                data: [
-                    36,
-                ]
-            },{
-                label: '#run',
-                backgroundColor: backgrounds[2],
-                data: [
-                    29,
-                ]
-            },{
-                label: '#woo',
-                backgroundColor: backgrounds[3],
-                data: [
-                    93,
-                ]
-            },{
-                label: '#yum',
-                backgroundColor: backgrounds[4],
-                data: [
-                    21,
-                ]
-            }];
+        var dataSet = [];
+        function getDataset(onLoadCallback) {
+
+            if (dataSet.length == 0){
+                console.log("Making request");
+                httpGetAsync("http://127.0.0.1:5000/v1/tag/minnesota", function(response){
+                    var tagResponse = JSON.parse(string);
+                    var backgrounds = randomColor({count: Object.keys(dictionary).length, luminosity: 'light'});
+                    var index = 0;
+                    for (var key in tagResponse) {
+
+                        // check if the property/key is defined in the object itself, not in parent
+                        if (tagResponse.hasOwnProperty(key)) {
+                            dataSet.push({
+                                label: key,
+                                backgroundColor: backgrounds[index],
+                                data: [
+                                    parseInt(tagResponse[key], 10),
+                                ]
+                            });
+                            console.log(key, tagResponse[key]);
+                            index++;
+                        }
+                    }
+                    onLoadCallback(dataSet);
+                });
+            } else {
+                onLoadCallback(dataSet);
+            }
+            // return [{
+            //     label: '#usa',
+            //     backgroundColor: backgrounds[0],
+            //     data: [
+            //         99,
+            //     ]
+            // },{
+            //     label: '#city',
+            //     backgroundColor: backgrounds[1],
+            //     data: [
+            //         36,
+            //     ]
+            // },{
+            //     label: '#run',
+            //     backgroundColor: backgrounds[2],
+            //     data: [
+            //         29,
+            //     ]
+            // },{
+            //     label: '#woo',
+            //     backgroundColor: backgrounds[3],
+            //     data: [
+            //         93,
+            //     ]
+            // },{
+            //     label: '#yum',
+            //     backgroundColor: backgrounds[4],
+            //     data: [
+            //         21,
+            //     ]
+            // }];
         }
 
-        function getDatasetPie() {
-            var tempDataset = getDataset();
-            var returnData = {
-                "labels": [],
-                "datasets": [{
-                    "backgroundColor": [],
-                    "data": [],
-                }]
-            };
+        function getDatasetPie(pieChartCallback) {
+            getDataset(function(tempDataset){
+                var returnData = {
+                    "labels": [],
+                    "datasets": [{
+                        "backgroundColor": [],
+                        "data": [],
+                    }]
+                };
 
-            tempDataset.forEach(function(tempData){
-                returnData["labels"].push(tempData["label"]);
-                returnData["datasets"][0]["backgroundColor"].push(tempData["backgroundColor"]);
-                returnData["datasets"][0]["data"].push(tempData["data"]);
+                tempDataset.forEach(function(tempData){
+                    returnData["labels"].push(tempData["label"]);
+                    returnData["datasets"][0]["backgroundColor"].push(tempData["backgroundColor"]);
+                    returnData["datasets"][0]["data"].push(tempData["data"]);
+                });
+                pieChartCallback(returnData);
             });
-            return returnData;
         }
 
-        function getDatasetTags() {
-            var tempDataset          = getDataset();
-            var returnData           = {};
-            var previouslyHiddenTags = getCookieArray(TAG_COOKIE_STR);
+        function getDatasetTags(onLoadCallback) {
+            getDataset(function(tempDataset){
+                var returnData           = {};
+                var previouslyHiddenTags = getCookieArray(TAG_COOKIE_STR);
 
-            tempDataset.forEach(function(tempData){
-                // TODO(tom):find a way to save this in a cookie
-                // Mark the tag as hidden if its in the hidden tag cookie
-                returnData[tempData["label"]] = false //previouslyHiddenTags.includes(tempData["label"]);
+                tempDataset.forEach(function(tempData){
+                    // TODO(tom):find a way to save this in a cookie
+                    // Mark the tag as hidden if its in the hidden tag cookie
+                    returnData[tempData["label"]] = false //previouslyHiddenTags.includes(tempData["label"]);
+                });
+                onLoadCallback(returnData);
             });
-            return returnData;
         }
+
         var allTags = {};
 
         function getTagSting() {
@@ -184,73 +216,83 @@
             resetCopyButton();
         }
 
-        var backgrounds = randomColor({count: 5, luminosity: 'light'});
-        var barChartData = {
-            labels: ['#party'],
-            datasets: getDataset(),
-        };
+        function loadCharts(){
+            var BarCharCtx = document.getElementById('barChart').getContext('2d');
+            var PiChartCtx = document.getElementById("myChart").getContext('2d');
+            // Override the click handler
+            var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
+
+            getDataset(function(dataset){
+                var barChartData = {
+                    labels: ['#party'],
+                    datasets: dataset,
+                };
+
+                window.myBar = new Chart(BarCharCtx, {
+                    type: 'bar',
+                    data: barChartData,
+                    options: {
+                        title: {
+                            display: false,
+                            text: 'Chart.js Bar Chart - Stacked'
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: true
+                        },
+                        responsive: true,
+                        scales: {
+                            yAxes: [{
+                                stacked: true
+                            }],
+                            xAxes: [{
+                                stacked: true
+                            }]
+                        },
+                        legend: {
+                            display: true,
+                            onClick: newLegendClickHandler,
+                       },
+                    }
+                });
+
+                console.log(window.myBar)
+
+                // Allow For chart to be modified
+                allSiteCharts.push(window.myBar);
+            });
+
+
+            getDatasetPie(function(pieCharData) {
+                window.myChart = new Chart(PiChartCtx, {
+                  type: 'pie',
+                  options:{
+                    legend:{
+                      display:false
+                    }
+                  },
+                  data: {
+                    labels: pieCharData["labels"],
+                    datasets: pieCharData["datasets"],
+                  }
+                });
+
+                console.log(window.myChart)
+
+                // Allow For chart to be modified
+                allSiteCharts.push(window.myChart);
+            });
+
+            getDatasetTags(function(tempTags){
+                allTags = tempTags;
+                updateTagBlock();
+            });
+        }
 
         var allSiteCharts = [];
 
         window.onload = function() {
-
-            // Override the click handler
-            var ctx                       = document.getElementById('barChart').getContext('2d');
-            var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
-
-
-            window.myBar = new Chart(ctx, {
-                type: 'bar',
-                data: barChartData,
-                options: {
-                    title: {
-                        display: false,
-                        text: 'Chart.js Bar Chart - Stacked'
-                    },
-                    tooltips: {
-                        mode: 'index',
-                        intersect: true
-                    },
-                    responsive: true,
-                    scales: {
-                        yAxes: [{
-                            stacked: true
-                        }],
-                        xAxes: [{
-                            stacked: true
-                        }]
-                    },
-                    legend: {
-                        display: true,
-                        onClick: newLegendClickHandler,
-                   },
-                }
-            });
-
-            var ctx = document.getElementById("myChart").getContext('2d');
-            var pieCharData = getDatasetPie();
-            window.myChart = new Chart(ctx, {
-              type: 'pie',
-              options:{
-                legend:{
-                  display:false
-                }
-              },
-              data: {
-                labels: pieCharData["labels"],
-                datasets: pieCharData["datasets"],
-              }
-            });
-
-            console.log(window.myChart)
-            console.log(window.myBar)
-
-            // Allow For chart to be modified
-            allSiteCharts.push(window.myBar);
-            allSiteCharts.push(window.myChart);
-
-            allTags = getDatasetTags();
-            updateTagBlock();
+            loadCharts();
         };
 
         function getCharts() {
