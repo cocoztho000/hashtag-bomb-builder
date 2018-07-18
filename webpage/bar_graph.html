@@ -12,6 +12,7 @@
         -ms-user-select: none;
     }
     </style>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="css/index.css">
     <script src="js/randomColor.js"></script>
     <script src="js/cookies.js"></script>
@@ -30,7 +31,7 @@
         <div id="header_overlay">
             <div id="leftSide">
                 <h1 id="name_big">
-                    Tag Helper
+                    #&#x1F4A3
                 </h1>
                 <!-- <img id="name_small" src="images/logo.ico" alt="name small"> -->
                 <h3>Discover your target audience</h3>
@@ -54,10 +55,12 @@
             <div class="row search">
                 <div class="col-lg-6 center">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
+                        <form id="contactForm" action="#">
+                        <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
                         <span class="input-group-btn">
-                            <button class="btn btn-default" type="button">Search</button>
+                            <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
                         </span>
+                        </form>
                     </div><!-- /input-group -->
                 </div><!-- /.col-lg-6 -->
             </div>
@@ -94,11 +97,11 @@
         var TAG_SEARCHED_STR = "tags_searched";
 
         var dataSet = [];
-        function getDataset(onLoadCallback) {
+        function getDataset(tag, onLoadCallback) {
 
             if (dataSet.length == 0){
                 console.log("Making request");
-                httpGetAsync("http://192.168.1.15:5000/v1/tag/minnesota", function(response){
+                httpGetAsync("http://192.168.1.15:5000/v1/tag/" + tag , function(response){
                     var tagResponse = JSON.parse(response);
                     var backgrounds = randomColor({count: Object.keys(tagResponse).length, luminosity: 'light'});
                     var index = 0;
@@ -117,46 +120,17 @@
                             index++;
                         }
                     }
+                    console.log(dataSet)
                     onLoadCallback(dataSet);
                 });
             } else {
+                console.log(dataSet)
                 onLoadCallback(dataSet);
             }
-            // return [{
-            //     label: '#usa',
-            //     backgroundColor: backgrounds[0],
-            //     data: [
-            //         99,
-            //     ]
-            // },{
-            //     label: '#city',
-            //     backgroundColor: backgrounds[1],
-            //     data: [
-            //         36,
-            //     ]
-            // },{
-            //     label: '#run',
-            //     backgroundColor: backgrounds[2],
-            //     data: [
-            //         29,
-            //     ]
-            // },{
-            //     label: '#woo',
-            //     backgroundColor: backgrounds[3],
-            //     data: [
-            //         93,
-            //     ]
-            // },{
-            //     label: '#yum',
-            //     backgroundColor: backgrounds[4],
-            //     data: [
-            //         21,
-            //     ]
-            // }];
         }
 
-        function getDatasetPie(pieChartCallback) {
-            getDataset(function(tempDataset){
+        function getDatasetPie(tags, pieChartCallback) {
+            getDataset(tags, function(tempDataset){
                 var returnData = {
                     "labels": [],
                     "datasets": [{
@@ -174,8 +148,8 @@
             });
         }
 
-        function getDatasetTags(onLoadCallback) {
-            getDataset(function(tempDataset){
+        function getDatasetTags(tags, onLoadCallback) {
+            getDataset(tags, function(tempDataset){
                 var returnData           = {};
                 var previouslyHiddenTags = getCookieArray(TAG_COOKIE_STR);
 
@@ -216,13 +190,13 @@
             resetCopyButton();
         }
 
-        function loadCharts(){
+        function loadCharts(tags){
             var BarCharCtx = document.getElementById('barChart').getContext('2d');
             var PiChartCtx = document.getElementById("myChart").getContext('2d');
             // Override the click handler
             var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
 
-            getDataset(function(dataset){
+            getDataset(tags, function(dataset){
                 var barChartData = {
                     labels: ['#party'],
                     datasets: dataset,
@@ -263,7 +237,7 @@
             });
 
 
-            getDatasetPie(function(pieCharData) {
+            getDatasetPie(tags, function(pieCharData) {
                 window.myChart = new Chart(PiChartCtx, {
                   type: 'pie',
                   options:{
@@ -283,17 +257,13 @@
                 allSiteCharts.push(window.myChart);
             });
 
-            getDatasetTags(function(tempTags){
+            getDatasetTags(tags, function(tempTags){
                 allTags = tempTags;
                 updateTagBlock();
             });
         }
 
         var allSiteCharts = [];
-
-        window.onload = function() {
-            loadCharts();
-        };
 
         function getCharts() {
             return allSiteCharts
@@ -338,6 +308,20 @@
 
             document.execCommand("copy");
             copyButton.innerHTML = "copied to clipboard";
+        });
+
+        $("#search_submit").click(function() {
+            var tags = $('#search_values').val();
+
+            // Reset Dataset when new value is submited
+            dataSet = [];
+             getDataset(tags, function(data){
+                loadCharts(tags);
+            });
+        });
+
+        $('#search_submit').submit(function () {
+         return false;
         });
 
     </script>
