@@ -98,9 +98,9 @@
 
             if (dataSet.length == 0){
                 console.log("Making request");
-                httpGetAsync("http://127.0.0.1:5000/v1/tag/minnesota", function(response){
-                    var tagResponse = JSON.parse(string);
-                    var backgrounds = randomColor({count: Object.keys(dictionary).length, luminosity: 'light'});
+                httpGetAsync("http://192.168.1.15:5000/v1/tag/minnesota", function(response){
+                    var tagResponse = JSON.parse(response);
+                    var backgrounds = randomColor({count: Object.keys(tagResponse).length, luminosity: 'light'});
                     var index = 0;
                     for (var key in tagResponse) {
 
