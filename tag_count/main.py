@@ -360,7 +360,7 @@ class tag(object):
             if temp_tag_ref.count > minnumum_occurences:
                 good_tag_refs[temp_tag_name] = temp_tag_ref
 
-        for _ in range(len(good_tag_refs)):
+        for _ in range(10):
 
             largest_tag = list(good_tag_refs.values())[0]
             position = largest_tag.name

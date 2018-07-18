@@ -41,7 +41,7 @@ class tagCountApi(Resource):
             for ordered_tag_ref in ordered_tag_refs:
                 response[ordered_tag_ref.name] = ordered_tag_ref.count
 
-            self.instaCountBack.get_posts_from_instagram(tag_name)
+            # self.instaCountBack.get_posts_from_instagram(tag_name)
             conn.close()
             return response
 
