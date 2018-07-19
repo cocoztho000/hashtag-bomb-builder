@@ -40,7 +40,6 @@ DEALINGS IN THE SOFTWARE.
 }
 .bar {
   visibility: hidden;
-
   content: "";
   display: inline;
   position: absolute;
@@ -50,15 +49,15 @@ DEALINGS IN THE SOFTWARE.
   text-align: center;
 }
 .bar:nth-child(1) {
-  background-color: #da4733;
+  background-color: #f7c8b2;
   animation: loading 3s linear infinite;
 }
 .bar:nth-child(2) {
-  background-color: #4CAF50;
+  background-color: #98b2ea;
   animation: loading 3s linear 1s infinite;
 }
 .bar:nth-child(3) {
-  background-color: #fdba2c;
+  background-color: #d7ccff;
   animation: loading 3s linear 2s infinite;
 }
 @keyframes loading {

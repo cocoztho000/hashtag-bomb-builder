@@ -38,3 +38,44 @@
 .float-left{
   float:left;
 }
+
+#barChartContainer {
+  width: 50%; 
+  text-align:center; 
+  display: inline-block;
+}
+#pieChartContainer {
+  width: 40%; 
+  display: inline-block;
+}
+
+#codeBlock {
+    display: inline-block;
+    width: 60%;
+}
+/*
+Set up charts for mobile
+*/
+@media (max-width: 1081px) {
+    #pieChartContainer {
+      width: 70%; 
+    }
+    #barChartContainer {
+      width: 70%; 
+    }
+    #codeBlock {
+      width: 80%;
+    }
+}
+@media (max-width: 725px) {
+
+    #pieChartContainer {
+      width: 80%; 
+    }
+    #barChartContainer {
+      width: 100%; 
+    }
+    #codeBlock {
+      width: 95%;
+    }
+}

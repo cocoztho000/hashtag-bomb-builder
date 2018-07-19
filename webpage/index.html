@@ -23,43 +23,27 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="css/header.css">
     <link rel="stylesheet" type="text/css" href="css/loader.css">
-
+    <script src="js/chart.bundle.min.js"></script>
+    <script src="js/Chart.min.js"></script>
 </head>
 
 <body>
     <header >
         <div id="header_overlay">
             <div id="leftSide">
-                <h1 id="name_big">
-                    #&#x1F4A3
-                </h1>
-                <!-- <img id="name_small" src="images/logo.ico" alt="name small"> -->
-                <h3>Discover your target audience</h3>
+                <img id="icon" src="images/tag_bomb-80-white.png" alt="name small">
+                <h3>Target your audience with hashtag bombs</h3>
             </div>
-            <div id="rightSide">
-                <!-- <ul id="links">
-                    <li>
-                        <a id="projects_button" >Projects</a>
-                    </li>
-                    <li>
-                        <a id="skills_button">My Skills</a>
-                    </li>
-                    <li>
-                        <a  id="resume_button" >Resume</a>
-                    </li>
-                    <li>
-                        <a id="header_top_button">Top</a>
-                    </li>
-                </ul> -->
-            </div>
+           
             <div class="row search">
-                <div class="col-lg-6 center">
+                <div class="col-lg-8 center">
                     <div class="input-group">
                         <form id="contactForm" action="#">
                         <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
                         <span class="input-group-btn">
                             <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
                         </span>
+                        
                         </form>
                     </div><!-- /input-group -->
                 </div><!-- /.col-lg-6 -->
@@ -73,13 +57,13 @@
 
     </header>
 
-    <div style="height: 110px"></div>
+    <div style="height: 150px"></div>
 
     <div style="text-align: center;">
-    <div style="width: 50%; text-align:center; display: inline-block;">
+    <div id="barChartContainer">
         <canvas id="barChart"></canvas>
     </div>
-    <div style="width: 50%; display: inline-block;">
+    <div id="pieChartContainer">
         <canvas id="myChart" width="500" height="300"></canvas>
     </div>
     <div id="codeBlockContainer" style="text-align: center;">
@@ -120,6 +104,8 @@
                             index++;
                         }
                     }
+                    hideLoadingBar();
+
                     console.log(dataSet)
                     onLoadCallback(dataSet);
                 });
@@ -189,22 +175,14 @@
             // When tag block changes reset copy button
             resetCopyButton();
         }
-
-        function loadCharts(tags){
-            var BarCharCtx = document.getElementById('barChart').getContext('2d');
-            var PiChartCtx = document.getElementById("myChart").getContext('2d');
-            // Override the click handler
-            var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
-
-            getDataset(tags, function(dataset){
-                var barChartData = {
-                    labels: ['#party'],
-                    datasets: dataset,
-                };
-
-                window.myBar = new Chart(BarCharCtx, {
+        var allSiteCharts = [];
+        var BarCharCtx = document.getElementById('barChart').getContext('2d');
+        var PiChartCtx = document.getElementById("myChart").getContext('2d');
+        // Override the click handler
+        var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
+        var myBar = new Chart(BarCharCtx, {
                     type: 'bar',
-                    data: barChartData,
+                    data: null,
                     options: {
                         title: {
                             display: false,
@@ -229,16 +207,8 @@
                        },
                     }
                 });
-
-                console.log(window.myBar)
-
-                // Allow For chart to be modified
-                allSiteCharts.push(window.myBar);
-            });
-
-
-            getDatasetPie(tags, function(pieCharData) {
-                window.myChart = new Chart(PiChartCtx, {
+        allSiteCharts.push(myBar);
+        var pieChart = new Chart(PiChartCtx, {
                   type: 'pie',
                   options:{
                     legend:{
@@ -246,15 +216,38 @@
                     }
                   },
                   data: {
-                    labels: pieCharData["labels"],
-                    datasets: pieCharData["datasets"],
+                    labels: null,
+                    datasets: null,
                   }
                 });
+        allSiteCharts.push(pieChart);
 
-                console.log(window.myChart)
+        function loadCharts(tags){
+            
+            getDataset(tags, function(dataset){
+                var barChartData = {
+                    labels: ['#party'],
+                    datasets: dataset,
+                };
+                console.log("bitches");
+                console.log(myBar);
+                
+                myBar.data = barChartData;
+                myBar.update();
+            });
+
+
+            getDatasetPie(tags, function(pieCharData) {
+                var pieChartData = {
+                    labels: pieCharData["labels"],
+                    datasets: pieCharData["datasets"],
+                };
+                console.log("more bitches");
+                console.log(pieChart);
+                pieChart.data = pieChartData;
 
                 // Allow For chart to be modified
-                allSiteCharts.push(window.myChart);
+                pieChart.update();
             });
 
             getDatasetTags(tags, function(tempTags){
@@ -263,8 +256,6 @@
             });
         }
 
-        var allSiteCharts = [];
-
         function getCharts() {
             return allSiteCharts
         }
@@ -272,6 +263,13 @@
         function resetCopyButton() {
             var copyButton = document.getElementById("copyCodeBlock");
             copyButton.innerHTML = "copy";
+        }
+
+        function showLoadingBar(){
+            $('.bar').css("visibility","visible");
+        }
+        function hideLoadingBar(){
+            $('.bar').css("visibility","hidden");
         }
 
         function newLegendClickHandler (e, legendItem) {
@@ -312,7 +310,10 @@
 
         $("#search_submit").click(function() {
             var tags = $('#search_values').val();
-
+            if (tags == "") {
+                return;
+            }
+            showLoadingBar();
             // Reset Dataset when new value is submited
             dataSet = [];
              getDataset(tags, function(data){
@@ -326,8 +327,7 @@
 
     </script>
 </body>
-<script src="js/chart.bundle.min.js"></script>
-<script src="js/Chart.min.js"></script>
+
 <script src="js/index.js"></script>
 
 </html>
