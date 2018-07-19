@@ -161,7 +161,7 @@ class instaCountBackground(object):
         response   = requests.get(tag_url.format(tag_name))
 
         if not response.ok:
-            return []
+            return tag("", -1, [])
 
         party_data = response.json()
         new_posts  = party_data['graphql']['hashtag']['edge_hashtag_to_media']['edges']
@@ -249,6 +249,7 @@ class instaCountBackground(object):
 
 
     def get_new_tag_posts(self, conn, tag_name):
+
         post_ids_from_db_list = self.get_posts_from_db(conn, tag_name)
 
         tag_with_posts = self.get_posts_from_instagram(tag_name)

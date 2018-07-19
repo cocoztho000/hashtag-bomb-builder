@@ -33,15 +33,27 @@ class tagCountApi(Resource):
     def get(self, version, tag_name):
         if version == self.v1:
             conn = sqlite3.connect('instagram.db')
-            tag_with_posts = self.instaCountBack.get_new_tag_posts(conn, tag_name)
-
-            ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
-            # ordered_tag_refs = tag_with_posts.get_all_ordered_tags()
+            temp_all_tags = tag_name.split(',')
+            all_tags = []
+            for tag in temp_all_tags:
+                all_tags = all_tags + tag.split(' ')
+            all_tags = [tag.strip().replace('#', '') for tag in all_tags]
+            all_tags = [tag.strip().replace('#', '') for tag in all_tags]
+            all_tags = [tag for tag in all_tags]
             response = {}
-            for ordered_tag_ref in ordered_tag_refs:
-                response[ordered_tag_ref.name] = ordered_tag_ref.count
+            tag_with_posts = None
 
-            # self.instaCountBack.get_posts_from_instagram(tag_name)
+            for tag in all_tags:
+                if tag_with_posts == None:
+                    tag_with_posts = self.instaCountBack.get_new_tag_posts(conn, tag)
+                else:
+                    tag_with_posts.all_post_tags.append(self.instaCountBack.get_new_tag_posts(conn, tag))
+
+            if tag_with_posts != None:
+                ordered_tag_refs = tag_with_posts.get_ordered_tag_refs()
+                for ordered_tag_ref in ordered_tag_refs:
+                    response[ordered_tag_ref.name] = ordered_tag_ref.count
+
             conn.close()
             return response
 
