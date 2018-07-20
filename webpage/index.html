@@ -34,7 +34,7 @@
                 <img id="icon" src="images/tag_bomb-80-white.png" alt="name small">
                 <h3>Target your audience with hashtag bombs</h3>
             </div>
-           
+
             <div class="row search">
                 <div class="col-lg-8 center">
                     <div class="input-group">
@@ -43,7 +43,7 @@
                         <span class="input-group-btn">
                             <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
                         </span>
-                        
+
                         </form>
                     </div><!-- /input-group -->
                 </div><!-- /.col-lg-6 -->
@@ -223,7 +223,7 @@
         allSiteCharts.push(pieChart);
 
         function loadCharts(tags){
-            
+
             getDataset(tags, function(dataset){
                 var barChartData = {
                     labels: ['#party'],
@@ -231,7 +231,7 @@
                 };
                 console.log("bitches");
                 console.log(myBar);
-                
+
                 myBar.data = barChartData;
                 myBar.update();
             });
