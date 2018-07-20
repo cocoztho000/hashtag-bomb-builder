@@ -14,11 +14,13 @@
     </style>
     <meta charset="utf-8">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="icon" href="images/tag_bomb-80.png">
     <script src="js/randomColor.js"></script>
     <script src="js/cookies.js"></script>
     <script src="js/search.js"></script>
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="css/search.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300i" rel="stylesheet">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="css/header.css">
@@ -39,11 +41,10 @@
                 <div class="col-lg-8 center">
                     <div class="input-group">
                         <form id="contactForm" action="#">
-                        <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
-                        <span class="input-group-btn">
-                            <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
-                        </span>
-
+                            <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
+                            <span class="input-group-btn">
+                                <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
+                            </span>
                         </form>
                     </div><!-- /input-group -->
                 </div><!-- /.col-lg-6 -->
@@ -59,22 +60,27 @@
 
     <div style="height: 150px"></div>
 
-    <div style="text-align: center;">
-    <div id="barChartContainer">
-        <canvas id="barChart"></canvas>
+    <div id="infoContainer">
+        <img id="infoPerson" src="images/person-blue.png">
+        <p class="infoText" id="infoTextLine1">Search above to find the hashtags</p>
+        <p class="infoText" id="infoTextLine2">your audience is using</p>
     </div>
-    <div id="pieChartContainer">
-        <canvas id="myChart" width="500" height="300"></canvas>
-    </div>
-    <div id="codeBlockContainer" style="text-align: center;">
-        <div id="codeBlock">
-            <div id="copyCodeBlock">copy</div>
-            <code  id="tags"></code>
-        </div>
-    </div>
-    <input type="text" value="Hello World" id="holdtext" style="display: none;"></input>
 
-</div>
+    <div id="chartContainer" style="text-align: center;">
+        <div id="barChartContainer">
+            <canvas id="barChart"></canvas>
+        </div>
+        <div id="pieChartContainer">
+            <canvas id="myChart" width="500" height="300"></canvas>
+        </div>
+        <div id="codeBlockContainer" style="text-align: center;">
+            <div id="codeBlock">
+                <div id="copyCodeBlock">copy</div>
+                <code  id="tags"></code>
+            </div>
+        </div>
+        <input type="text" value="Hello World" id="holdtext" style="display: none;"></input>
+    </div>
     <script>
 
         var TAG_COOKIE_STR = "tags_disabled";
@@ -104,7 +110,9 @@
                             index++;
                         }
                     }
+                    showChartContainer();
                     hideLoadingBar();
+                    hideInfoContainer();
 
                     console.log(dataSet)
                     onLoadCallback(dataSet);
@@ -226,7 +234,7 @@
 
             getDataset(tags, function(dataset){
                 var barChartData = {
-                    labels: ['#party'],
+                    labels: ['#' + tags],
                     datasets: dataset,
                 };
                 console.log("bitches");
@@ -267,9 +275,21 @@
 
         function showLoadingBar(){
             $('.bar').css("visibility","visible");
+            setInfoText("Gathering your tags");
         }
+        function setInfoText(text){
+            document.getElementById("infoTextLine1").innerHTML=text;
+            $('#infoTextLine2').css("display","none");
+        }
+        function hideInfoContainer(){
+            $('#infoContainer').css("display","none");
+        }
+
         function hideLoadingBar(){
             $('.bar').css("visibility","hidden");
+        }
+        function showChartContainer(){
+            $('#chartContainer').css("visibility","visible");
         }
 
         function newLegendClickHandler (e, legendItem) {
@@ -322,7 +342,7 @@
         });
 
         $('#search_submit').submit(function () {
-         return false;
+            return false;
         });
 
     </script>

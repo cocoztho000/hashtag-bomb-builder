@@ -1,9 +1,11 @@
 .search {
-  display: inline-block;
-  margin-left: 2%;
-  margin-bottom: 22px;
-  margin-right: 2%;
+  position: absolute;
+  margin: auto;
+  top: 35px;
+  left: 0;
+  right: 0;
   width: 60%;
+  height: 300px;
 }
 .center {
     float: none;
