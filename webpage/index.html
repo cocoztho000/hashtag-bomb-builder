@@ -13,6 +13,7 @@
     }
     </style>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/index.css">
     <link rel="icon" href="images/tag_bomb-80.png">
     <script src="js/randomColor.js"></script>
@@ -33,14 +34,14 @@
     <header >
         <div id="header_overlay">
             <div id="leftSide">
-                <img id="icon" src="images/tag_bomb-80-white.png" alt="name small">
+                <img id="icon" height="40px" src="images/tag_bomb-80-white.png" alt="name small">
                 <h3>Target your audience with hashtag bombs</h3>
             </div>
 
             <div class="row search">
                 <div class="col-lg-8 center">
                     <div class="input-group">
-                        <form id="contactForm" action="#">
+                        <form id="contactForm">
                             <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
                             <span class="input-group-btn">
                                 <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
@@ -58,14 +59,21 @@
 
     </header>
 
-    <div style="height: 150px"></div>
+    <div style="height: 75px"></div>
 
     <div id="infoContainer">
         <img id="infoPerson" src="images/person-blue.png">
-        <p class="infoText" id="infoTextLine1">Search above to find the hashtags</p>
-        <p class="infoText" id="infoTextLine2">your audience is using</p>
+        <p class="infoText" id="infoTextLine1">Find the hashtags your audience is using</p>
+        <div id="helpContainer" style="text-align: center;">
+            <div style="text-align: left; display: inline-block;">
+                <p>HOW IT WORKS</p>
+                <p>1. Figure out a couple tags that really represent your business</p>
+                <p>2. Search those tags to find other tags that people are using</p>
+                <p>3. Reap the rewards of better targeting your audiance :)</p>
+            </div>
+        </div>
     </div>
-
+    <div id="legendContainer"></div>
     <div id="chartContainer" style="text-align: center;">
         <div id="barChartContainer">
             <canvas id="barChart"></canvas>
@@ -81,15 +89,17 @@
         </div>
         <input type="text" value="Hello World" id="holdtext" style="display: none;"></input>
     </div>
+    <footer style="height: 100px; background: transparent;"></footer>
     <script>
 
         var TAG_COOKIE_STR = "tags_disabled";
         var TAG_SEARCHED_STR = "tags_searched";
 
-        var dataSet = [];
-        function getDataset(tag, onLoadCallback) {
+        var dataSet       = [];
+        var hiddenDataSet = [];
 
-            if (dataSet.length == 0){
+        function getDataset(tag, onLoadCallback) {
+            if (dataSet.length == 0 && hiddenDataSet.length == 0){
                 console.log("Making request");
                 httpGetAsync("http://192.168.1.15:5000/v1/tag/" + tag , function(response){
                     var tagResponse = JSON.parse(response);
@@ -188,39 +198,65 @@
         var PiChartCtx = document.getElementById("myChart").getContext('2d');
         // Override the click handler
         var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
-        var myBar = new Chart(BarCharCtx, {
+        var weightChartOptions = {
+            responsive: true,
+            legendCallback: function(chart) {
+                console.log(chart);
+                var legendHtml = [];
+                legendHtml.push('<ul id="horizontal-list">');
+                for (var i=0; i<chart.data.datasets[0].data.length; i++) {
+                    var tempBkndClr = myBar.data.datasets[0].backgroundColor[i];
+                    legendHtml.push('<li id="' + i + '" class="legend-item">');
+                    legendHtml.push('    <div style="display: inline-block" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
+                    legendHtml.push('        <span class="chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');                    
+                    if (chart.data.labels[i]) {
+                        legendHtml.push('        ' + chart.data.labels[i] + '</div></li>');
+                    } else {
+                        legendHtml.push('    </div>');
+                        legendHtml.push('</li>');
+                    }                                                                        
+                }                                                                                  
+                legendHtml.push('</ul>');                                                       
+                return legendHtml.join("");                                                        
+            },                                                                               
+            legend: {                                                                              
+                display: false,                                                                     
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        };                                                                                       
+
+       
+
+        // Show/hide chart by click legend
+        updateDataset = function(e, datasetIndex) {
+            var index = datasetIndex;
+            var ci = e.view.weightChart;
+            var meta = ci.getDatasetMeta(index);
+
+            // See controller.isDatasetVisible comment
+            meta.hidden = meta.hidden === null? !ci.data.datasets[index].hidden : null;
+
+            // We hid a dataset ... rerender the chart
+            ci.update();
+        };
+
+        myBar = new Chart(BarCharCtx, {
                     type: 'bar',
                     data: null,
-                    options: {
-                        title: {
-                            display: false,
-                            text: 'Chart.js Bar Chart - Stacked'
-                        },
-                        tooltips: {
-                            mode: 'index',
-                            intersect: true
-                        },
-                        responsive: true,
-                        scales: {
-                            yAxes: [{
-                                stacked: true
-                            }],
-                            xAxes: [{
-                                stacked: true
-                            }]
-                        },
-                        legend: {
-                            display: true,
-                            onClick: newLegendClickHandler,
-                       },
-                    }
+                    options: weightChartOptions,
                 });
         allSiteCharts.push(myBar);
         var pieChart = new Chart(PiChartCtx, {
                   type: 'pie',
                   options:{
                     legend:{
-                      display:false
+                      display:false,
                     }
                   },
                   data: {
@@ -230,12 +266,11 @@
                 });
         allSiteCharts.push(pieChart);
 
-        function loadCharts(tags){
-
-            getDataset(tags, function(dataset){
+        function loadBarChart(tags){
+            getDatasetPie(tags, function(barData) {
                 var barChartData = {
-                    labels: ['#' + tags],
-                    datasets: dataset,
+                    labels: barData["labels"],
+                    datasets: barData["datasets"],
                 };
                 console.log("bitches");
                 console.log(myBar);
@@ -243,7 +278,10 @@
                 myBar.data = barChartData;
                 myBar.update();
             });
+        }
 
+        function loadCharts(tags){
+            loadBarChart(tags);
 
             getDatasetPie(tags, function(pieCharData) {
                 var pieChartData = {
@@ -262,6 +300,12 @@
                 allTags = tempTags;
                 updateTagBlock();
             });
+            generateLegend();
+        }
+
+        function generateLegend(){
+            var legend = document.getElementById("legendContainer");
+            legend.innerHTML=myBar.generateLegend();
         }
 
         function getCharts() {
@@ -276,6 +320,7 @@
         function showLoadingBar(){
             $('.bar').css("visibility","visible");
             setInfoText("Gathering your tags");
+            hideHelpContainer();
         }
         function setInfoText(text){
             document.getElementById("infoTextLine1").innerHTML=text;
@@ -284,6 +329,10 @@
         function hideInfoContainer(){
             $('#infoContainer').css("display","none");
         }
+        function hideHelpContainer(){
+            $('#helpContainer').css("display","none");
+        }
+
 
         function hideLoadingBar(){
             $('.bar').css("visibility","hidden");
@@ -292,28 +341,72 @@
             $('#chartContainer').css("visibility","visible");
         }
 
-        function newLegendClickHandler (e, legendItem) {
-            var index = legendItem.datasetIndex;
-            var hideData = !legendItem.hidden;
+        function newLegendClickHandler (e, legendItemIndex) {
+            console.log("INDEX: " + legendItemIndex);
+            var index = legendItemIndex;
+
+            var tagName = "";
+            var tagHidden = false;
 
             // Loop through all charts and upate them when legend is clicked
             getCharts().forEach(function(siteChart) {
                 if (siteChart != null){
+                    console.log(pieChart.data.labels);
+                    var tagName = pieChart.data.labels[legendItemIndex];
+                    console.log("CLICK LEGEND" + tagName);
+                    // POP TAG OUT OF dataSet
                     if (siteChart.config.type === "bar"){
-                        siteChart.data.datasets[index].hidden = hideData;
+                        var found = false;
+                        var item;
+
+                        // Delete the item from the graph
+                        for (var i=0; i <dataSet.length; i++) {
+                            item = dataSet[i];
+
+                            console.log(item);
+                            if (item.label == tagName) {
+                                found = true;
+                                // Pop item and put it in hiddenDataSet
+                                hiddenDataSet.push(dataSet.splice(i,1)[0]);
+                                break;
+                            }
+                        }
+
+                        // Add the item back to the graph
+                        if (!found){
+                            for (var i=0; i <hiddenDataSet.length; i++) {
+                                item = hiddenDataSet[i];
+                                if (item.label == tagName) {
+                                    // Pop item and put it in dataSet
+                                    dataSet.push(hiddenDataSet.splice(i,1)[0]);
+                                    break;
+                                }
+                            }
+                        }
+                        // Update the bar char with the new data. We can't call myBar.Update()
+                        // since we are hacking the bar chart library to hold 1 dataset but allow
+                        // us to modify the data in a legend
+                        loadBarChart("");
                     }
                     if (siteChart.config.type === "pie"){
+                        var hideData = !siteChart.legend.legendItems[index].hidden;
+                        tagHidden = hideData
+
+                        console.log("pie chart");
                         siteChart.getDatasetMeta(0).data[index].hidden = hideData;
                     }
+                    console.log(siteChart)
                     siteChart.update();
                 }
             });
-            allTags[legendItem.text] = hideData
+            if (tagName != ""){
+                allTags[tagName] = tagHidden
+
+            }
             updateTagBlock();
-            console.log(legendItem)
         }
 
-        $("#copyCodeBlock").click(function() {
+        $("#codeBlock").click(function() {
             var holdtext = document.getElementById("tags");
             var copyButton = document.getElementById("copyCodeBlock");
 
@@ -333,21 +426,24 @@
             if (tags == "") {
                 return;
             }
+            // TODO(tom): verify this stuff
+            // Check these caracters are not in hashtag: !, $, %, ^, &, *, +, .
+            // Check the hashtag doesn't start with a number
+
             showLoadingBar();
             // Reset Dataset when new value is submited
             dataSet = [];
+            hiddenDataSet = [];
              getDataset(tags, function(data){
                 loadCharts(tags);
             });
         });
 
-        $('#search_submit').submit(function () {
+        $('#contactForm').submit(function () {
             return false;
         });
 
     </script>
 </body>
-
-<script src="js/index.js"></script>
 
 </html>
