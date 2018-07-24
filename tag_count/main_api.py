@@ -81,4 +81,4 @@ app.after_request(add_cors_headers)
 api.add_resource(tagCountApi, '/<version>/tag/<tag_name>')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='192.168.1.15')
+    app.run(debug=True)
