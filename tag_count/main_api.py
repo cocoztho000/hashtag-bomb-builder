@@ -18,7 +18,7 @@ are syncing the tag posts and uploading them to the tag post api.
 '''
 from flask import Flask, request
 from flask_restful import reqparse, abort, Api, Resource
-from tag_count.main import InstaCountBackground
+from main import InstaCountBackground
 import sqlite3
 
 app = Flask(__name__)
