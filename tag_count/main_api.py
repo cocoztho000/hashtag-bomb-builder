@@ -74,15 +74,15 @@ class TagCountApi(Resource):
 #     def get(self):
 #         return "GO AWAY";
 
-# def add_cors_headers(response):
-#     response.headers['Access-Control-Allow-Origin'] = '*'
-#     if request.method == 'OPTIONS':
-#         response.headers['Access-Control-Allow-Methods'] = 'GET, PUT'
-#         headers = request.headers.get('Access-Control-Request-Headers')
-#         if headers:
-#             response.headers['Access-Control-Allow-Headers'] = headers
-#     return response
-# app.after_request(add_cors_headers)
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    if request.method == 'OPTIONS':
+        response.headers['Access-Control-Allow-Methods'] = 'GET, PUT'
+        headers = request.headers.get('Access-Control-Request-Headers')
+        if headers:
+            response.headers['Access-Control-Allow-Headers'] = headers
+    return response
+app.after_request(add_cors_headers)
 
 
 api.add_resource(TagCountApi, '/<version>/tag/<tag_name>')
