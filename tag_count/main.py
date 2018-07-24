@@ -180,6 +180,12 @@ class InstaCountBackground(object):
 
             # Used to weight more popular posts higher
             post_multiplier = post['node']['edge_media_to_comment']['count'] + post['node']['edge_media_preview_like']['count']
+            if post_multiplier > 1000:
+                post_multiplier = 4
+            elif  post_multiplier > 100:
+                post_multiplier = 2
+            else:
+                post_multiplier = 1
 
             all_comments = ""
             all_tags_in_comments = []
