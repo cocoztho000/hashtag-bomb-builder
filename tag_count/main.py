@@ -7,7 +7,7 @@ import sqlite3
 import hashlib
 import time
 
-class instaCountBackground(object):
+class InstaCountBackground(object):
     conn = sqlite3.connect('instagram.db')
 
     # Table containing the data behind a tag
@@ -396,4 +396,4 @@ class post_tag(object):
         self.post_multiplier     = post_multiplier
 
 if __name__ == '__main__':
-    instaCountBackground().main()
+    InstaCountBackground().main()

@@ -18,17 +18,17 @@ are syncing the tag posts and uploading them to the tag post api.
 '''
 from flask import Flask, request
 from flask_restful import reqparse, abort, Api, Resource
-from tag_count.main import instaCountBackground
+from tag_count.main import InstaCountBackground
 import sqlite3
 
 app = Flask(__name__)
 api = Api(app)
 
-class tagCountApi(Resource):
+class TagCountApi(Resource):
 
     def __init__(self):
         self.v1 = 'v1'
-        self.instaCountBack = instaCountBackground()
+        self.instaCountBack = InstaCountBackground()
 
     def get(self, version, tag_name):
         if version == self.v1:
@@ -67,26 +67,26 @@ class tagCountApi(Resource):
             conn.close()
             return self.get(self.v1, tag_name)
 
-class hello(Resource):
+# class hello(Resource):
 
-    def __init__(self):
+#     def __init__(self):
 
-    def get(self):
-        return "GO AWAY";
+#     def get(self):
+#         return "GO AWAY";
 
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    if request.method == 'OPTIONS':
-        response.headers['Access-Control-Allow-Methods'] = 'GET, PUT'
-        headers = request.headers.get('Access-Control-Request-Headers')
-        if headers:
-            response.headers['Access-Control-Allow-Headers'] = headers
-    return response
-app.after_request(add_cors_headers)
+# def add_cors_headers(response):
+#     response.headers['Access-Control-Allow-Origin'] = '*'
+#     if request.method == 'OPTIONS':
+#         response.headers['Access-Control-Allow-Methods'] = 'GET, PUT'
+#         headers = request.headers.get('Access-Control-Request-Headers')
+#         if headers:
+#             response.headers['Access-Control-Allow-Headers'] = headers
+#     return response
+# app.after_request(add_cors_headers)
 
 
-api.add_resource(tagCountApi, '/<version>/tag/<tag_name>')
-api.add_resource(hello, '/')
+api.add_resource(TagCountApi, '/<version>/tag/<tag_name>')
+# api.add_resource(Hello, '/')
 
 if __name__ == '__main__':
     app.run()

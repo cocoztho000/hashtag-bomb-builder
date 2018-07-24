@@ -24,3 +24,11 @@ wget https://github.com/mozilla/geckodriver/releases/download/v0.19.1/geckodrive
 ```
 
 ### Untar driver and add it to `/usr/local/bin`
+
+# SETUP
+
+since the env is a 3.5 env we need to install 2.7 python for mod_wigi since thats
+what its compiled for
+```
+virtualenv --python=/usr/bin/python2.7 .venv
+```
