@@ -1,8 +1,7 @@
-python3-mmhash
-python-instagram
+# python3-mmhash
+# python-instagram
 requests
-gspread
-oauth2client
-PyMySQL
+# gspread
+# oauth2client
 PyMySQL
 flask-restful
