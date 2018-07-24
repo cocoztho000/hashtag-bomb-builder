@@ -12,7 +12,7 @@
     margin: 0 auto;
 }
 .btn {
-  padding: 6.4px 18px;
+  padding: 6.2px 18px;
 }
 
 #tags {
@@ -40,6 +40,7 @@
   position: absolute;
   z-index: 1;
   float: right;
+  right: 0px;
   text-align: right;
 }
 .input-group{
@@ -49,4 +50,21 @@
 .chart-legend-label-text {
   padding: 5px;
   cursor: pointer;
+}
+
+@media (max-width: 850px) {
+    .search {
+      position: relative;
+      top: 0px;
+      height: auto;
+      left: 0px;
+      width: 100%;
+    }
+    #searchContainer {
+      width: 100%;
+    }
+    .center {
+      margin: 0;
+      padding: 0;
+    }
 }
