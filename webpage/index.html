@@ -112,7 +112,7 @@
             if (dataSet.length == 0 && hiddenDataSet.length == 0){
                 console.log("Making request");
                     var xhr = new XMLHttpRequest();
-                    xhr.open('GET', "http://hashtagbombbuilder.com/v1/tag/" + tag, true);
+                    xhr.open('GET', "http://api.hashtagbombbuilder.com/v1/tag/" + tag, true);
                     xhr.send();
                      
                     xhr.addEventListener("readystatechange", function(e){
