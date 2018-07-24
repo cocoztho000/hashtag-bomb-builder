@@ -8,7 +8,7 @@ import hashlib
 import time
 
 class InstaCountBackground(object):
-    conn = sqlite3.connect('instagram.db')
+    conn = sqlite3.connect('/var/www/hashtagbombbuilder.com/instagram_tag_generator/instagram.db')
 
     # Table containing the data behind a tag
     sql_create_tags_table = """ CREATE TABLE IF NOT EXISTS tags (

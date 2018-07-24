@@ -32,7 +32,7 @@ class TagCountApi(Resource):
 
     def get(self, version, tag_name):
         if version == self.v1:
-            conn = sqlite3.connect('instagram.db')
+            conn = sqlite3.connect('/var/www/hashtagbombbuilder.com/instagram_tag_generator/instagram.db')
             temp_all_tags = tag_name.split(',')
             all_tags = []
             for tag in temp_all_tags:
