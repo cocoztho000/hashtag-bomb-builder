@@ -67,6 +67,13 @@ class tagCountApi(Resource):
             conn.close()
             return self.get(self.v1, tag_name)
 
+class hello(Resource):
+
+    def __init__(self):
+
+    def get(self):
+        return "GO AWAY";
+
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     if request.method == 'OPTIONS':
@@ -79,6 +86,7 @@ app.after_request(add_cors_headers)
 
 
 api.add_resource(tagCountApi, '/<version>/tag/<tag_name>')
+api.add_resource(hello, '/')
 
 if __name__ == '__main__':
     app.run()
