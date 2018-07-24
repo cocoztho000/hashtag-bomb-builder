@@ -264,6 +264,8 @@ class InstaCountBackground(object):
         return tag_with_posts
 
     def calc_sleep_interval(self, number_of_tags):
+        if number_of_tags == 0:
+            number_of_tags = 1
         return (60 * 60) / number_of_tags
 
     def get_current_time(self):
