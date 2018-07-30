@@ -12,7 +12,7 @@
     margin: 0 auto;
 }
 .btn {
-  padding: 6.2px 18px;
+  padding: 6.3px 18px;
 }
 
 #tags {
@@ -36,12 +36,17 @@
   z-index: 0;
   float: left;
 }
-#search_submit {
+
+.search_button {
   position: absolute;
   z-index: 1;
   float: right;
   right: 0px;
   text-align: right;
+}
+
+#search_submit {
+  float: right;
 }
 .input-group{
   width: 100%;
@@ -52,6 +57,10 @@
   cursor: pointer;
 }
 
+/*OVERRIDE: border radius on form since it was not on the right side*/
+.input-group .form-control:first-child {
+  border-radius: 4px;
+}
 @media (max-width: 850px) {
     .search {
       position: relative;

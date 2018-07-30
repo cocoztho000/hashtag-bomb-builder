@@ -53,8 +53,8 @@
                     <div class="input-group">
                         <form id="contactForm" autocomplete="off">
                             <input id="search_values" type="text" class="form-control" placeholder="Space or Comma Seperated Hashtags">
-                            <span class="input-group-btn">
-                                <button id="search_submit" type="submit" class="btn btn-default" type="button">Search</button>
+                            <span class="search_button input-group-btn">
+                                <button id="search_submit" type="submit" class="search_button btn btn-default" type="button">Search</button>
                             </span>
                         </form>
                     </div><!-- /input-group -->
@@ -467,6 +467,14 @@
             return ""
         }
 
+        function setSearchButtonBackgroundRandom() {
+            var searchBackgroundColor = randomColor({count: 1, luminosity: 'light'});
+            $('#search_submit').css("background-color","" + "#A513B6");
+            $('#search_submit').css("border-color","" + "#A513B6");
+            $('#search_submit').css("color","" + "white");
+        }
+
+        //setSearchButtonBackgroundRandom();
         $("#codeBlock").click(function() {
             var holdtext = document.getElementById("tags");
             var copyButton = document.getElementById("copyCodeBlock");
