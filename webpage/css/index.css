@@ -116,4 +116,16 @@ Set up charts for mobile
     #codeBlock {
       width: 95%;
     }
+    #infoPerson {
+      width: 100px;
+    }
+    .infoText {
+      font-size: 20px;
+    }
+    #helpContainer {
+      font-size: 13px;
+    }
+    #search_values {
+      font-size: 11px;
+    }
 }
