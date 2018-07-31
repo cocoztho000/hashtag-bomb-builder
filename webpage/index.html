@@ -99,7 +99,7 @@
             if (window.CHITIKA === undefined) { window.CHITIKA = { 'units' : [] }; };
             var ad_width = 728;
             var ad_height = 90;
-            if(window.width < 725) {
+            if($(window).width() < 725) {
                 ad_width = 550;
                 ad_height = 250;
             }
