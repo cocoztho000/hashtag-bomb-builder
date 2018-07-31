@@ -91,6 +91,10 @@ font-family: 'Montserrat', sans-serif;
 font-size: 30px;
 }
 
+#helpContainer {
+  font-size: 14px;
+}
+
 /*
 Set up charts for mobile
 */
@@ -124,8 +128,5 @@ Set up charts for mobile
     }
     #helpContainer {
       font-size: 13px;
-    }
-    #search_values {
-      font-size: 11px;
     }
 }

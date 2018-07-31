@@ -76,4 +76,7 @@
       margin: 0;
       padding: 0;
     }
+    #search_values {
+      font-size: 11px;
+    }
 }
