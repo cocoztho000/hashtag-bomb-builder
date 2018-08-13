@@ -29,6 +29,7 @@
     <link rel="stylesheet" type="text/css" href="css/loader.css">
     <script src="js/chart.bundle.min.js"></script>
     <script src="js/Chart.min.js"></script>
+<script src="https://cdn.rawgit.com/emn178/Chart.PieceLabel.js/master/build/Chart.PieceLabel.min.js"></script>
 </head>
 
 <body>
@@ -77,8 +78,8 @@
         </div>
     </div>
 
-    <div id="legendContainer"></div>
     <div id="chartContainer" style="text-align: center;">
+        <div id="legendContainer"></div>
         <div id="barChartContainer">
             <canvas id="barChart"></canvas>
         </div>
@@ -238,6 +239,9 @@
         // Override the click handler
         var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
         var weightChartOptions = {
+            pieceLabel: {
+                        render: 'label',
+                    },
             responsive: true,
             legendCallback: function(chart) {
                 console.log(chart);
@@ -259,7 +263,7 @@
                 return legendHtml.join("");                                                        
             },                                                                               
             legend: {                                                                              
-                display: false,                                                                     
+                display: false,     
             },
             scales: {
                 yAxes: [{
@@ -294,6 +298,9 @@
         var pieChart = new Chart(PiChartCtx, {
                   type: 'pie',
                   options:{
+                    pieceLabel: {
+                        render: 'label',
+                    },
                     legend:{
                       display:false,
                     }
@@ -346,6 +353,7 @@
         }
 
         function generateLegend(){
+            console.log("Generating Legend");
             var legend = document.getElementById("legendContainer");
             legend.innerHTML=myBar.generateLegend();
         }
@@ -400,6 +408,17 @@
 
         function newLegendClickHandler(e, legendItemIndex) {
             console.log("INDEX: " + legendItemIndex);
+            console.log("text-decoration: " + $(e.target).css("text-decoration"));
+            var parent = e.target;
+            var line_through = $(e.target).css("text-decoration");
+            console.log("debug: " + line_through.includes("line-through"));
+            if (!line_through.includes("line-through")){
+                $(e.target).css("text-decoration", "line-through");
+            } else {
+                $(e.target).css("text-decoration", "none");
+            }
+            // parent.style.textDecorationColor = 'line-through';
+            // $(e.target).css('text-decoration': 'line-through');
             var index = legendItemIndex;
 
             var tagName = "";
