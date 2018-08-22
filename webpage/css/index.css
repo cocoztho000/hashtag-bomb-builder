@@ -27,8 +27,12 @@ body {
   height: 10px;
   margin-right: 10px;
 }
-
-
+#codeBlockContainer{
+  z-index: 1;
+}
+footer{
+  z-index: 0;
+}
 #legendContainer{
   text-align: center;
   margin: 0 13vw;
