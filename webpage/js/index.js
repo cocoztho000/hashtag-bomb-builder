@@ -90,22 +90,48 @@
             });
         }
 
+        function shuffle(arra1) {
+            var ctr = arra1.length, temp, index;
+
+            // While there are elements in the array
+            while (ctr > 0) {
+                // Pick a random index
+                index = Math.floor(Math.random() * ctr);
+                // Decrease ctr by 1
+                ctr--;
+                // And swap the last element with it
+                temp = arra1[ctr];
+                arra1[ctr] = arra1[index];
+                arra1[index] = temp;
+            }
+            return arra1;
+        }
+
         var allTags = {};
 
         function getTagSting() {
             var tagText = '<div style="line-height: 1;">.<br/>.<br/>.<br/>.<br/>.<br/></div>';
             var tempTag = "";
+            var tagArray = []
 
+            // Loop through all hashtags
             for (var key in allTags) {
                 tempTag = key;
                 if (allTags[key]) {
                     continue;
                 }
-
                 if (!tempTag.includes("#")) {
-                    tempTag = "#" + allTags[key];
+                    tempTag = "#" + tempTag
                 }
-                tagText = tagText.concat(" " + tempTag);
+
+                tagArray.push(tempTag)
+            }
+            // Randomize order
+            if (tagArray.length > 0 ){
+                tagArray = shuffle(tagArray);
+            }
+            for (var i = 0; i < tagArray.length; i++) {
+                tagText = tagText.concat(" " + tagArray[i]);
             }
             return tagText;
         }
