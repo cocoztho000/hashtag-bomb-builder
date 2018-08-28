@@ -1,467 +1,570 @@
+// import getCookie from 'js/cookies.js';
+var NUMBER_OF_DOTS_IN_COPY_SECTION=5
+var NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE="NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE"
+var TAG_COOKIE_STR = "tags_disabled";
+var TAG_SEARCHED_STR = "tags_searched";
 
-        var TAG_COOKIE_STR = "tags_disabled";
-        var TAG_SEARCHED_STR = "tags_searched";
+var dataSet = [];
+var hiddenDataSet = [];
 
-        var dataSet = [];
-        var hiddenDataSet = [];
+function getDataset(tag, onLoadCallback) {
+    if (dataSet.length == 0 && hiddenDataSet.length == 0) {
+        console.log("Making request");
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://api.hashtagbombbuilder.com/v1/tag/" + tag, true);
+        xhr.send();
 
-        function getDataset(tag, onLoadCallback) {
-            if (dataSet.length == 0 && hiddenDataSet.length == 0) {
-                console.log("Making request");
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', "http://api.hashtagbombbuilder.com/v1/tag/" + tag, true);
-                xhr.send();
+        xhr.addEventListener("readystatechange", function (e) {
+            try {
+                if (xhr.status != 200) {
+                    showError("There was a problem loading the data. Please reload the page and try again.");
+                    return;
+                }
+                if (xhr.readyState == 4) {
+                    var tagResponse = JSON.parse(xhr.responseText);
+                    var backgrounds = randomColor({ count: Object.keys(tagResponse).length, luminosity: 'light' });
+                    var index = 0;
+                    for (var key in tagResponse) {
 
-                xhr.addEventListener("readystatechange", function (e) {
-                    try {
-                        if (xhr.status != 200) {
-                            showError("There was a problem loading the data. Please reload the page and try again.");
-                            return;
-                        }
-                        if (xhr.readyState == 4) {
-                            var tagResponse = JSON.parse(xhr.responseText);
-                            var backgrounds = randomColor({ count: Object.keys(tagResponse).length, luminosity: 'light' });
-                            var index = 0;
-                            for (var key in tagResponse) {
-
-                                // check if the property/key is defined in the object itself, not in parent
-                                if (tagResponse.hasOwnProperty(key)) {
-                                    dataSet.push({
-                                        label: key,
-                                        backgroundColor: backgrounds[index],
-                                        data: [
-                                            parseInt(tagResponse[key], 10),
-                                        ]
-                                    });
-                                    console.log(key, tagResponse[key]);
-                                    index++;
-                                }
-                            }
-                            showChartContainer();
-                            hideLoadingBar();
-                            hideInfoContainer();
-
-                            console.log(dataSet)
-                            onLoadCallback(dataSet);
+                        // check if the property/key is defined in the object itself, not in parent
+                        if (tagResponse.hasOwnProperty(key)) {
+                            dataSet.push({
+                                label: key,
+                                backgroundColor: backgrounds[index],
+                                data: [
+                                    parseInt(tagResponse[key], 10),
+                                ]
+                            });
+                            console.log(key, tagResponse[key]);
+                            index++;
                         }
                     }
-                    catch (err) {
-                        console.log("Error loading data" + err);
-                        showError("There was a problem loading data. Please try again.");
-                    }
-                }, false);
+                    showChartContainer();
+                    hideLoadingBar();
+                    hideInfoContainer();
 
+                    console.log(dataSet)
+                    onLoadCallback(dataSet);
+                }
+            }
+            catch (err) {
+                console.log("Error loading data" + err);
+                showError("There was a problem loading data. Please try again.");
+            }
+        }, false);
+
+    } else {
+        console.log(dataSet)
+        onLoadCallback(dataSet);
+    }
+}
+
+function getDatasetPie(tags, pieChartCallback) {
+    getDataset(tags, function (tempDataset) {
+        var returnData = {
+            "labels": [],
+            "datasets": [{
+                "backgroundColor": [],
+                "data": [],
+            }]
+        };
+
+        tempDataset.forEach(function (tempData) {
+            returnData["labels"].push(tempData["label"]);
+            returnData["datasets"][0]["backgroundColor"].push(tempData["backgroundColor"]);
+            returnData["datasets"][0]["data"].push(tempData["data"]);
+        });
+        pieChartCallback(returnData);
+    });
+}
+
+function getDatasetTags(tags, onLoadCallback) {
+    getDataset(tags, function (tempDataset) {
+        var returnData = {};
+        var previouslyHiddenTags = getCookie(TAG_COOKIE_STR);
+
+        tempDataset.forEach(function (tempData) {
+            // TODO(tom):find a way to save this in a cookie
+            // Mark the tag as hidden if its in the hidden tag cookie
+            returnData[tempData["label"]] = false //previouslyHiddenTags.includes(tempData["label"]);
+        });
+        onLoadCallback(returnData);
+    });
+}
+
+function shuffle(arra1) {
+    var ctr = arra1.length, temp, index;
+
+    // While there are elements in the array
+    while (ctr > 0) {
+        // Pick a random index
+        index = Math.floor(Math.random() * ctr);
+        // Decrease ctr by 1
+        ctr--;
+        // And swap the last element with it
+        temp = arra1[ctr];
+        arra1[ctr] = arra1[index];
+        arra1[index] = temp;
+    }
+    return arra1;
+}
+
+var allTags = {};
+
+function generateDots(){
+    var dotStr = ".<br/>";
+    var dotCookieCountStr = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE)
+
+    if (dotCookieCountStr != null && dotCookieCountStr != ""){
+        dotCookieCountStr = parseInt(dotCookieCountStr, 10);
+    }
+
+    return dotStr.repeat(dotCookieCountStr);
+}
+
+function getTagSting() {
+
+    var tagText = '<div style="line-height: 1;">' + generateDots() + '</div>';
+    var tempTag = "";
+    var tagArray = []
+
+    // Loop through all hashtags
+    for (var key in allTags) {
+        tempTag = key;
+        if (allTags[key]) {
+            continue;
+        }
+        if (!tempTag.includes("#")) {
+            tempTag = "#" + tempTag
+        }
+
+        tagArray.push(tempTag)
+    }
+    // Randomize order
+    if (tagArray.length > 0 ){
+        tagArray = shuffle(tagArray);
+    }
+    for (var i = 0; i < tagArray.length; i++) {
+        tagText = tagText.concat(" " + tagArray[i]);
+    }
+    return tagText;
+}
+
+function updateTagBlock() {
+    tagText = getTagSting();
+    document.getElementById('tags').innerHTML = tagText;
+
+    // When tag block changes reset copy button
+    resetCopyButton();
+}
+
+var allSiteCharts = [];
+var BarCharCtx = document.getElementById('barChart').getContext('2d');
+var PiChartCtx = document.getElementById("myChart").getContext('2d');
+// Override the click handler
+var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
+var weightChartOptions = {
+    plugins: {
+        datalabels: {
+            formatter: function(value, context) {
+                return context.chart.data.labels[context.dataIndex];
+            },
+            allowOverlap: false,
+            align: "end",
+            offset: 20,
+            anchor: "center",
+            rotation: 90,
+        },
+    },
+    responsive: true,
+    legendCallback: function (chart) {
+        console.log(chart.data);
+        console.log("cocozzello");
+        var legendHtml = [];
+        legendHtml.push('<ul id="horizontal-list">');
+        for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
+            var tempBkndClr = myBar.data.datasets[0].backgroundColor[i];
+            legendHtml.push('<li id="' + i + '" class="legend-item">');
+            legendHtml.push('    <div style="display: inline-block" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
+            legendHtml.push('        <span id="legend_span" class="chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');
+            if (chart.data.labels[i]) {
+                legendHtml.push('        ' + chart.data.labels[i] + ': '+ chart.data.datasets[0].data[i] +  '</div></li>');
             } else {
-                console.log(dataSet)
-                onLoadCallback(dataSet);
+                legendHtml.push('    </div>');
+                legendHtml.push('</li>');
             }
         }
-
-        function getDatasetPie(tags, pieChartCallback) {
-            getDataset(tags, function (tempDataset) {
-                var returnData = {
-                    "labels": [],
-                    "datasets": [{
-                        "backgroundColor": [],
-                        "data": [],
-                    }]
-                };
-
-                tempDataset.forEach(function (tempData) {
-                    returnData["labels"].push(tempData["label"]);
-                    returnData["datasets"][0]["backgroundColor"].push(tempData["backgroundColor"]);
-                    returnData["datasets"][0]["data"].push(tempData["data"]);
-                });
-                pieChartCallback(returnData);
-            });
+        legendHtml.push('</ul>');
+        return legendHtml.join("");
+    },
+    legend: {
+        display: false,
+    },
+    scales:{
+            xAxes: [{
+                display: false //this will remove all the x-axis grid lines
+            }]
         }
+    // scales: {
+    //     yAxes: [{
+    //         ticks: {
+    //             beginAtZero: true
+    //         }
+    //     }]
+    // }
+};
 
-        function getDatasetTags(tags, onLoadCallback) {
-            getDataset(tags, function (tempDataset) {
-                var returnData = {};
-                //var previouslyHiddenTags = getCookieArray(TAG_COOKIE_STR);
 
-                tempDataset.forEach(function (tempData) {
-                    // TODO(tom):find a way to save this in a cookie
-                    // Mark the tag as hidden if its in the hidden tag cookie
-                    returnData[tempData["label"]] = false //previouslyHiddenTags.includes(tempData["label"]);
-                });
-                onLoadCallback(returnData);
-            });
-        }
 
-        function shuffle(arra1) {
-            var ctr = arra1.length, temp, index;
+// Show/hide chart by click legend
+updateDataset = function (e, datasetIndex) {
+    var index = datasetIndex;
+    var ci = e.view.weightChart;
+    var meta = ci.getDatasetMeta(index);
 
-            // While there are elements in the array
-            while (ctr > 0) {
-                // Pick a random index
-                index = Math.floor(Math.random() * ctr);
-                // Decrease ctr by 1
-                ctr--;
-                // And swap the last element with it
-                temp = arra1[ctr];
-                arra1[ctr] = arra1[index];
-                arra1[index] = temp;
-            }
-            return arra1;
-        }
+    // See controller.isDatasetVisible comment
+    meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
 
-        var allTags = {};
+    // We hid a dataset ... rerender the chart
+    ci.update();
+};
 
-        function getTagSting() {
-            var tagText = '<div style="line-height: 1;">.<br/>.<br/>.<br/>.<br/>.<br/></div>';
-            var tempTag = "";
-            var tagArray = []
-
-            // Loop through all hashtags
-            for (var key in allTags) {
-                tempTag = key;
-                if (allTags[key]) {
-                    continue;
-                }
-                if (!tempTag.includes("#")) {
-                    tempTag = "#" + tempTag
-                }
-
-                tagArray.push(tempTag)
-            }
-            // Randomize order
-            if (tagArray.length > 0 ){
-                tagArray = shuffle(tagArray);
-            }
-            for (var i = 0; i < tagArray.length; i++) {
-                tagText = tagText.concat(" " + tagArray[i]);
-            }
-            return tagText;
-        }
-
-        function updateTagBlock() {
-            tagText = getTagSting();
-            document.getElementById('tags').innerHTML = tagText;
-
-            // When tag block changes reset copy button
-            resetCopyButton();
-        }
-        var allSiteCharts = [];
-        var BarCharCtx = document.getElementById('barChart').getContext('2d');
-        var PiChartCtx = document.getElementById("myChart").getContext('2d');
-        // Override the click handler
-        var defaultLegendClickHandler = Chart.defaults.global.legend.onClick;
-        var weightChartOptions = {
-            pieceLabel: {
+myBar = new Chart(BarCharCtx, {
+    type: 'bar',
+    data: null,
+    labels: null,
+    options: weightChartOptions,
+});
+allSiteCharts.push(myBar);
+var pieChart = new Chart(PiChartCtx, {
+    type: 'pie',
+    options: {
+        plugins: {
+            labels: {
+                // render 'label', 'value', 'percentage', 'image' or custom function, default is 'percentage'
                 render: 'label',
+                overlap: false,
             },
-            responsive: true,
-            legendCallback: function (chart) {
-                console.log(chart);
-                var legendHtml = [];
-                legendHtml.push('<ul id="horizontal-list">');
-                for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
-                    var tempBkndClr = myBar.data.datasets[0].backgroundColor[i];
-                    legendHtml.push('<li id="' + i + '" class="legend-item">');
-                    legendHtml.push('    <div style="display: inline-block" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
-                    legendHtml.push('        <span class="chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');
-                    if (chart.data.labels[i]) {
-                        legendHtml.push('        ' + chart.data.labels[i] + '</div></li>');
-                    } else {
-                        legendHtml.push('    </div>');
-                        legendHtml.push('</li>');
-                    }
-                }
-                legendHtml.push('</ul>');
-                return legendHtml.join("");
-            },
-            legend: {
-                display: false,
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            }
-        };
-
-
-
-        // Show/hide chart by click legend
-        updateDataset = function (e, datasetIndex) {
-            var index = datasetIndex;
-            var ci = e.view.weightChart;
-            var meta = ci.getDatasetMeta(index);
-
-            // See controller.isDatasetVisible comment
-            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
-
-            // We hid a dataset ... rerender the chart
-            ci.update();
-        };
-
-        myBar = new Chart(BarCharCtx, {
-            type: 'bar',
-            data: null,
-            options: weightChartOptions,
-        });
-        allSiteCharts.push(myBar);
-        var pieChart = new Chart(PiChartCtx, {
-            type: 'pie',
-            options: {
-                pieceLabel: {
-                    render: 'label',
+            datalabels: {
+                formatter: function(value, context) {
+                    return "";
                 },
-                legend: {
-                    display: false,
-                }
             },
-            data: {
-                labels: null,
-                datasets: null,
-            }
-        });
-        allSiteCharts.push(pieChart);
-
-        function loadBarChart(tags) {
-            getDatasetPie(tags, function (barData) {
-                var barChartData = {
-                    labels: barData["labels"],
-                    datasets: barData["datasets"],
-                };
-                console.log("bitches");
-                console.log(myBar);
-
-                myBar.data = barChartData;
-                myBar.update();
-            });
+            // TODO(tom): Un comment when datalabels supports overlap detection. Its a PR right now
+            // datalabels: {
+            //     formatter: function(value, context) {
+            //         return context.chart.data.labels[context.dataIndex];
+            //     },
+            //     allowOverlap: false,
+            //     align: "end",
+            //     offset: 20,
+            //     anchor: "center",
+            // },
+        },
+        legend: {
+            display: false,
         }
-        function loadTagCopy(tags) {
-            getDatasetTags(tags, function (tempTags) {
-                allTags = tempTags;
-                updateTagBlock();
-            });
-        }
+    },
+    data: {
+        labels: null,
+        datasets: null,
+    },
 
-        function loadCharts(tags) {
-            loadBarChart(tags);
+});
+allSiteCharts.push(pieChart);
 
-            getDatasetPie(tags, function (pieCharData) {
-                var pieChartData = {
-                    labels: pieCharData["labels"],
-                    datasets: pieCharData["datasets"],
-                };
-                console.log("more bitches");
-                console.log(pieChart);
-                pieChart.data = pieChartData;
+function loadBarChart(tags) {
+    getDatasetPie(tags, function (barData) {
+        var barChartData = {
+            labels: barData["labels"],
+            datasets: barData["datasets"],
+        };
+        console.log("bitches");
+        console.log(myBar);
 
-                // Allow For chart to be modified
-                pieChart.update();
-            });
-            loadTagCopy(tags);
+        myBar.data = barChartData;
+        myBar.update();
+    });
+}
+function loadTagCopy(tags) {
+    getDatasetTags(tags, function (tempTags) {
+        allTags = tempTags;
+        updateTagBlock();
+    });
+}
 
-            generateLegend();
-        }
+function loadCharts(tags) {
+    loadBarChart(tags);
 
-        function generateLegend() {
-            console.log("Generating Legend");
-            var legend = document.getElementById("legendContainer");
-            legend.innerHTML = myBar.generateLegend();
-        }
+    getDatasetPie(tags, function (pieCharData) {
+        var pieChartData = {
+            labels: pieCharData["labels"],
+            datasets: pieCharData["datasets"],
+        };
+        console.log("more bitches");
+        console.log(pieChart);
+        pieChart.data = pieChartData;
 
-        function getCharts() {
-            return allSiteCharts
-        }
+        // Allow For chart to be modified
+        pieChart.update();
+    });
+    loadTagCopy(tags);
 
-        function resetCopyButton() {
-            var copyButton = document.getElementById("copyCodeBlock");
-            copyButton.innerHTML = "copy";
-        }
+    generateLegend();
+}
 
-        function showLoadingBar() {
-            $('.bar').css("visibility", "visible");
-            setInfoText("Gathering your tags");
-            hideHelpContainer();
-        }
-        function setInfoText(text) {
-            document.getElementById("infoTextLine1").innerHTML = text;
-            $('#infoTextLine2').css("display", "none");
-        }
-        function hideInfoContainer() {
-            $('#infoContainer').css("display", "none");
-        }
-        function showInfoContainer() {
-            $('#infoContainer').css("display", "inline");
-        }
-        function hideHelpContainer() {
-            $('#helpContainer').css("display", "none");
-        }
-        function hideLoadingBar() {
-            $('.bar').css("visibility", "hidden");
-        }
-        function showChartContainer() {
-            $('#chartContainer').css("visibility", "visible");
-            $('#legendContainer').css("visibility", "visible");
-        }
-        function hideChartContainer() {
-            $('#chartContainer').css("visibility", "hidden");
-            $('#legendContainer').css("visibility", "hidden");
-        }
+function generateLegend() {
+    console.log("Generating Legend");
+    var legend = document.getElementById("legendContainer");
+    legend.innerHTML = myBar.generateLegend();
+}
+
+function getCharts() {
+    return allSiteCharts
+}
+
+function resetCopyButton() {
+    var copyButton = document.getElementById("copyCodeBlock");
+    copyButton.innerHTML = "copy";
+}
+
+function showLoadingBar() {
+    $('.bar').css("visibility", "visible");
+    setInfoText("Gathering your tags");
+    hideHelpContainer();
+}
+function setInfoText(text) {
+    document.getElementById("infoTextLine1").innerHTML = text;
+    $('#infoTextLine2').css("display", "none");
+}
+function hideInfoContainer() {
+    $('#infoContainer').css("display", "none");
+}
+function showInfoContainer() {
+    $('#infoContainer').css("display", "inline");
+}
+function hideHelpContainer() {
+    $('#helpContainer').css("display", "none");
+}
+function hideLoadingBar() {
+    $('.bar').css("visibility", "hidden");
+}
+function showChartContainer() {
+    $('#chartContainer').css("visibility", "visible");
+    $('#legendContainer').css("visibility", "visible");
+}
+function hideChartContainer() {
+    $('#chartContainer').css("visibility", "hidden");
+    $('#legendContainer').css("visibility", "hidden");
+}
 
 
-        function showError(errorStr) {
-            hideLoadingBar();
-            hideHelpContainer();
-            hideChartContainer();
-            showInfoContainer();
-            setInfoText(errorStr);
-        }
+function showError(errorStr) {
+    hideLoadingBar();
+    hideHelpContainer();
+    hideChartContainer();
+    showInfoContainer();
+    setInfoText(errorStr);
+}
 
-        function newLegendClickHandler(e, legendItemIndex) {
-            console.log("INDEX: " + legendItemIndex);
-            console.log("text-decoration: " + $(e.target).css("text-decoration"));
-            var parent = e.target;
-            var line_through = $(e.target).css("text-decoration");
-            console.log("debug: " + line_through.includes("line-through"));
-            if (!line_through.includes("line-through")) {
-                $(e.target).css("text-decoration", "line-through");
-            } else {
-                $(e.target).css("text-decoration", "none");
-            }
-            // parent.style.textDecorationColor = 'line-through';
-            // $(e.target).css('text-decoration': 'line-through');
-            var index = legendItemIndex;
+function newLegendClickHandler(e, legendItemIndex) {
+    console.log("INDEX: " + legendItemIndex);
+    var parent = e.target;
+    // If user click on an inside element of the div use the parent to put the strike through
+    if ($(parent).attr('id') == "legend_span"){
+        parent = $(parent).parent()
+    }
 
-            var tagName = "";
-            var tagHidden = false;
+    var line_through = $(parent).css("text-decoration");
+    // Toggle line-through
+    if (!line_through.includes("line-through")) {
+        $(parent).css("text-decoration", "line-through");
+    } else {
+        $(parent).css("text-decoration", "none");
+    }
 
-            // Loop through all charts and upate them when legend is clicked
-            getCharts().forEach(function (siteChart) {
-                if (siteChart != null) {
-                    console.log(pieChart.data.labels);
-                    var tagName = pieChart.data.labels[legendItemIndex];
-                    console.log("CLICK LEGEND" + tagName);
-                    // POP TAG OUT OF dataSet
-                    if (siteChart.config.type === "bar") {
-                        var found = false;
-                        var item;
+    var index = legendItemIndex;
 
-                        // Delete the item from the graph
-                        for (var i = 0; i < dataSet.length; i++) {
-                            item = dataSet[i];
+    var tagName = "";
+    var tagHidden = false;
 
-                            console.log(item);
-                            if (item.label == tagName) {
-                                found = true;
-                                // Pop item and put it in hiddenDataSet
-                                hiddenDataSet.push(dataSet.splice(i, 1)[0]);
-                                break;
-                            }
-                        }
+    // Loop through all charts and upate them when legend is clicked
+    getCharts().forEach(function (siteChart) {
+        if (siteChart != null) {
+            console.log(pieChart.data.labels);
+            var tagName = pieChart.data.labels[legendItemIndex];
+            console.log("CLICK LEGEND" + tagName);
+            // POP TAG OUT OF dataSet
+            if (siteChart.config.type === "bar") {
+                var found = false;
+                var item;
 
-                        // Add the item back to the graph
-                        if (!found) {
-                            for (var i = 0; i < hiddenDataSet.length; i++) {
-                                item = hiddenDataSet[i];
-                                if (item.label == tagName) {
-                                    // Pop item and put it in dataSet
-                                    dataSet.push(hiddenDataSet.splice(i, 1)[0]);
-                                    break;
-                                }
-                            }
-                        }
-                        // Update the bar char with the new data. We can't call myBar.Update()
-                        // since we are hacking the bar chart library to hold 1 dataset but allow
-                        // us to modify the data in a legend
-                        loadBarChart("");
+                // Delete the item from the graph
+                for (var i = 0; i < dataSet.length; i++) {
+                    item = dataSet[i];
+
+                    console.log(item);
+                    if (item.label == tagName) {
+                        found = true;
+                        // Pop item and put it in hiddenDataSet
+                        hiddenDataSet.push(dataSet.splice(i, 1)[0]);
+                        break;
                     }
-                    if (siteChart.config.type === "pie") {
-                        var hideData = !siteChart.legend.legendItems[index].hidden;
-                        tagHidden = hideData
+                }
 
-                        console.log("pie chart");
-                        siteChart.getDatasetMeta(0).data[index].hidden = hideData;
+                // Add the item back to the graph
+                if (!found) {
+                    for (var i = 0; i < hiddenDataSet.length; i++) {
+                        item = hiddenDataSet[i];
+                        if (item.label == tagName) {
+                            // Pop item and put it in dataSet
+                            dataSet.push(hiddenDataSet.splice(i, 1)[0]);
+                            break;
+                        }
                     }
-                    console.log(siteChart)
-                    siteChart.update();
                 }
-            });
-            if (tagName != "") {
-                allTags[tagName] = tagHidden
-
+                // Update the bar char with the new data. We can't call myBar.Update()
+                // since we are hacking the bar chart library to hold 1 dataset but allow
+                // us to modify the data in a legend
+                loadBarChart("");
             }
-            loadTagCopy();
+            if (siteChart.config.type === "pie") {
+                var hideData = !siteChart.legend.legendItems[index].hidden;
+                tagHidden = hideData
+
+                console.log("pie chart");
+                siteChart.getDatasetMeta(0).data[index].hidden = hideData;
+            }
+            console.log(siteChart)
+            siteChart.update();
         }
+    });
+    if (tagName != "") {
+        allTags[tagName] = tagHidden
 
-        function searchContainerBadCaracter(tempSearchText) {
-            badChars = ['!', '$', '%', '^', '&', '*', '+', '.'];
-            for (badChar of badChars) {
-                if (tempSearchText.indexOf(badChar) > -1) {
-                    return "Hashtags can't contain these special characters: '" + badChars.join("', '") + "'"
-                }
-            }
+    }
+    loadTagCopy();
+}
 
-
-            if (tempSearchText.match(/^\d/)) {
-                return "Hashtags can't start with a number!"
-            }
-            return ""
+function searchContainerBadCaracter(tempSearchText) {
+    badChars = ['!', '$', '%', '^', '&', '*', '+', '.'];
+    for (badChar of badChars) {
+        if (tempSearchText.indexOf(badChar) > -1) {
+            return "Hashtags can't contain these special characters: '" + badChars.join("', '") + "'"
         }
+    }
 
-        function setSearchButtonBackgroundRandom() {
-            var searchBackgroundColor = randomColor({ count: 1, luminosity: 'light' });
-            $('#search_submit').css("background-color", "" + "#A513B6");
-            $('#search_submit').css("border-color", "" + "#A513B6");
-            $('#search_submit').css("color", "" + "white");
+
+    if (tempSearchText.match(/^\d/)) {
+        return "Hashtags can't start with a number!"
+    }
+    return ""
+}
+
+function setSearchButtonBackgroundRandom() {
+    var searchBackgroundColor = randomColor({ count: 1, luminosity: 'light' });
+    $('#search_submit').css("background-color", "" + "#A513B6");
+    $('#search_submit').css("border-color", "" + "#A513B6");
+    $('#search_submit').css("color", "" + "white");
+}
+
+function copyTags(){
+    var holdtext = document.getElementById("tags");
+    var copyButton = document.getElementById("copyCodeBlock");
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(holdtext);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+
+    document.execCommand("copy");
+    copyButton.innerHTML = "copied";
+}
+
+//setSearchButtonBackgroundRandom();
+$("#copyCodeBlock").click(function () {
+    copyTags();
+});
+$("#tags").click(function () {
+    copyTags();
+});
+
+$("#search_submit").click(function () {
+    var tags = $('#search_values').val();
+    if (tags == "") {
+        return;
+    }
+    errorStr = searchContainerBadCaracter(tags);
+    if (errorStr.length > 0) {
+        showError(errorStr);
+        return;
+    }
+
+    newTags = "";
+    for (var i = 0; i < tags.length; i++) {
+        if (tags.charAt(i) == '#') {
+            continue;
         }
+        if (tags.charAt(i) == ' ' || tags.charAt(i) == ',') {
+            showError("Sorry currently we only support ONE tag at a time");
+            return
+        }
+        newTags += tags.charAt(i);
+    }
 
-        //setSearchButtonBackgroundRandom();
-        $("#codeBlock").click(function () {
-            var holdtext = document.getElementById("tags");
-            var copyButton = document.getElementById("copyCodeBlock");
+    showLoadingBar();
+    // Reset Dataset when new value is submited
+    dataSet = [];
+    hiddenDataSet = [];
+    getDataset(newTags, function (data) {
+        loadCharts(newTags);
+    });
+});
 
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(holdtext);
-            selection.removeAllRanges();
-            selection.addRange(range);
+$('#contactForm').submit(function () {
+    return false;
+});
+
+function setCookie(name,value) {
+    document.cookie = name + "=" + (value || "");
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return "";
+}
 
 
-            document.execCommand("copy");
-            copyButton.innerHTML = "copied to clipboard";
-        });
+// Range Slider
+var rangeSlider = function(){
+  var slider = $('.range-slider'),
+      range = $('.range-slider__range'),
+      value = $('.range-slider__value');
 
-        $("#search_submit").click(function () {
-            var tags = $('#search_values').val();
-            if (tags == "") {
-                return;
-            }
-            errorStr = searchContainerBadCaracter(tags);
-            if (errorStr.length > 0) {
-                showError(errorStr);
-                return;
-            }
+  slider.each(function(){
+    value.each(function(){
+      var numDots = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
+      var value = $(this).prev().attr('value');
+      if (numDots != null && numDots != "" && numDots != undefined){
+        value = numDots;
+      }
+    console.log("Value: " + value);
+      $(this).html(value + " Dots");
+    });
 
-            newTags = "";
-            for (var i = 0; i < tags.length; i++) {
-                if (tags.charAt(i) == '#') {
-                    continue;
-                }
-                if (tags.charAt(i) == ' ' || tags.charAt(i) == ',') {
-                    showError("Sorry currently we only support ONE tag at a time");
-                    return
-                }
-                newTags += tags.charAt(i);
-            }
-
-            showLoadingBar();
-            // Reset Dataset when new value is submited
-            dataSet = [];
-            hiddenDataSet = [];
-            getDataset(newTags, function (data) {
-                loadCharts(newTags);
-            });
-        });
-
-        $('#contactForm').submit(function () {
-            return false;
-        });
+    range.on('input', function(){
+        setCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE, this.value.toString())
+        updateTagBlock();
+        $(this).next(value).html(this.value + " Dots");
+    });
+  });
+};
+rangeSlider();

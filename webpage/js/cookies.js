@@ -1,4 +1,4 @@
-function setCookie(cname,cvalue,exdays) {
+function setCookie(cname, cvalue) {
     document.cookie = cname + "=" + cvalue + ";path=/";
 }
 

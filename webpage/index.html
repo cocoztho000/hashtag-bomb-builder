@@ -15,13 +15,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Find the best hashtags to target your audience. Search a hashtag to find other relevant hashtags people are using.">
     <meta name="keywords" content="hashtag bom builder, hashtag bom, tag bom, hashtag search, hashtags, bom, builder, tag">
-    <link rel="stylesheet" href="css/index.css">
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="images/tag_bomb-80-square.png" rel="shortcut icon" type="image/png">
     <script src="js/randomColor.js"></script>
     <script src="js/cookies.js"></script>
     <script src="js/search.js"></script>
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/index.css">
     <link href="css/search.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300i" rel="stylesheet">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -30,7 +30,9 @@
     <link rel="stylesheet" type="text/css" href="css/loader.css">
     <script src="js/chart.bundle.min.js"></script>
     <script src="js/Chart.min.js"></script>
-    <script src="https://cdn.rawgit.com/emn178/Chart.PieceLabel.js/master/build/Chart.PieceLabel.min.js"></script>
+    <script src="js/chart.plugin.labels.js"></script>
+    <script src="js/chart.plugin.pie.labels.js"></script>
+
 </head>
 
 <body>
@@ -89,7 +91,16 @@
         </div>
         <div id="codeBlockContainer" style="text-align: center;">
             <div id="codeBlock">
-                <div id="copyCodeBlock">copy</div>
+                <div>
+                    <div class="range-slider">
+                        <div id="range-container">
+                            <input class="range-slider__range" type="range" value="5" min="0" max="5">
+                            <span class="range-slider__value">0</span>
+                        </div>
+                    </div>
+
+                    <div id="copyCodeBlock">copy</div>
+                </div>
                 <code id="tags">
                 </code>
             </div>
@@ -97,7 +108,6 @@
         <input type="text" value="Hello World" id="holdtext" style="display: none;"/>
     </div>
     <div style="height: 250px;"></div>
-   
 </body>
 
 <script type="text/javascript" src="js/index.js" async></script>
@@ -130,7 +140,7 @@
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-122735588-1">
-    
+
 </script>
 <script>
     window.dataLayer = window.dataLayer || [];
