@@ -203,6 +203,11 @@ var weightChartOptions = {
     scales:{
             xAxes: [{
                 display: false //this will remove all the x-axis grid lines
+            }],
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
             }]
         }
     // scales: {
