@@ -15,17 +15,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Find the best hashtags to target your audience. Search a hashtag to find other relevant hashtags people are using.">
     <meta name="keywords" content="hashtag bom builder, hashtag bom, tag bom, hashtag search, hashtags, bom, builder, tag">
-    <link rel="icon" type="image/png" href="favicon.png" />
     <link href="images/tag_bomb-80-square.png" rel="shortcut icon" type="image/png">
     <script src="js/randomColor.js"></script>
     <script src="js/cookies.js"></script>
     <script src="js/search.js"></script>
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/jquery.ui.css">
     <link rel="stylesheet" href="css/index.css">
     <link href="css/search.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300i" rel="stylesheet">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+    <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script> -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="css/header.css">
     <link rel="stylesheet" type="text/css" href="css/loader.css">
     <script src="js/chart.bundle.min.js"></script>
@@ -50,6 +59,7 @@
                             <!-- NEW TEXT: "Space or Comma Seperated Hashtags" -->
                             <input id="search_values" type="text" class="form-control" placeholder="One Hashtag">
                             <span class="search_button input-group-btn">
+                                <i class="fal fa-star"></i>
                                 <button id="search_submit" type="submit" class="search_button btn btn-default">Search</button>
                             </span>
                         </form>
@@ -115,23 +125,24 @@
     (function () {
         try {
            if (window.CHITIKA === undefined) { window.CHITIKA = { 'units': [] }; };
-        var ad_width = 728;
-        var ad_height = 90;
-        if ($(window).width() < 725) {
-            ad_width = 320;
-            ad_height = 50;
-        }
-        var unit = { "calltype": "async[2]", "publisher": "cocoztho000", "width": ad_width, "height": ad_height, "sid": "Chitika Default" };
-        var placement_id = window.CHITIKA.units.length;
-        window.CHITIKA.units.push(unit);
-        document.write('<div class="chitikaAdBlock" id="chitikaAdBlock-' + placement_id + '"></div>');
+            var ad_width = 728;
+            var ad_height = 90;
+            if ($(window).width() < 725) {
+                ad_width = 320;
+                ad_height = 50;
+            }
+            var unit = {"calltype":"async[2]","publisher":"cocoztho000","width":ad_width,"height":ad_height,"sid":"Chitika Default"};
+            var placement_id = window.CHITIKA.units.length;
+            window.CHITIKA.units.push(unit);
+
+            document.write('<div class="chitikaAdBlock" id="chitikaAdBlock-' + placement_id + '"></div>');
         }
         catch(err) {
             console.Log("Error" + err.message);
         }
     }());
 </script>
-<script type="text/javascript" src="cdn.chitika.net/getads.js" async></script>
+<script type="text/javascript" src="https://cdn.chitika.net/getads.js" async></script>
 
 <script src="https://cdn.ravenjs.com/3.26.4/raven.min.js"></script>
 <script type="text/javascript">

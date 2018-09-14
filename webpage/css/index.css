@@ -50,7 +50,14 @@ ul#horizontal-list {
   list-style: none;
   margin-top: 20px;
   margin-bottom: 20px;
-  }
+  columns: 3;
+  /* border: 2px solid red; */
+  border-radius: 5px;
+  /* border: 2px; */
+  text-align: left;
+  /*grid: 4;*/
+  /* border-color: black; */
+}
 
 .legend-item {
     display: inline;
@@ -118,6 +125,10 @@ font-size: 30px;
     cursor: pointer;
 }
 
+.legend-div {
+  display: inline-block;
+  width: 33vw;
+}
 /*------------------------------------------------------------------*/
 *, *:before, *:after {
   box-sizing: border-box;

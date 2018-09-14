@@ -185,7 +185,7 @@ var weightChartOptions = {
         for (var i = 0; i < chart.data.datasets[0].data.length; i++) {
             var tempBkndClr = myBar.data.datasets[0].backgroundColor[i];
             legendHtml.push('<li id="' + i + '" class="legend-item">');
-            legendHtml.push('    <div style="display: inline-block" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
+            legendHtml.push('    <div class="legend-div" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
             legendHtml.push('        <span id="legend_span" class="chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');
             if (chart.data.labels[i]) {
                 legendHtml.push('        ' + chart.data.labels[i] + ': '+ chart.data.datasets[0].data[i] +  '</div></li>');
@@ -488,6 +488,22 @@ function copyTags(){
     copyButton.innerHTML = "copied";
 }
 
+function onWidthChange(){
+    if ($('#div-id')[0].scrollWidth >  $('#div-id').innerWidth()) {
+        //Text has over-flown
+    }
+}
+
+// Trigger when screen size changes
+var width = $(window).width();
+$(window).on('resize', function(){
+    if($(this).width() != width){
+        width = $(this).width();
+        console.log(width);
+        onWidthChange();
+   }
+});
+
 //setSearchButtonBackgroundRandom();
 $("#copyCodeBlock").click(function () {
     copyTags();
@@ -495,6 +511,14 @@ $("#copyCodeBlock").click(function () {
 $("#tags").click(function () {
     copyTags();
 });
+
+// TODO(tom): Enable this
+// $("#search_values").autocomplete({
+//     source: ["Apple", "Boy", "Cat"],
+//     minLength: 0,
+// }).focus(function () {
+//     $(this).autocomplete("search");
+// });
 
 $("#search_submit").click(function () {
     var tags = $('#search_values').val();
