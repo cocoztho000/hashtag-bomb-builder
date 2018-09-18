@@ -488,11 +488,11 @@ function copyTags(){
     copyButton.innerHTML = "copied";
 }
 
-function onWidthChange(){
-    if ($('#div-id')[0].scrollWidth >  $('#div-id').innerWidth()) {
-        //Text has over-flown
-    }
-}
+// function onWidthChange(){
+//     if ($('#div-id')[0].scrollWidth >  $('#div-id').innerWidth()) {
+//         //Text has over-flown
+//     }
+// }
 
 // Trigger when screen size changes
 var width = $(window).width();
@@ -500,7 +500,7 @@ $(window).on('resize', function(){
     if($(this).width() != width){
         width = $(this).width();
         console.log(width);
-        onWidthChange();
+        // onWidthChange();
    }
 });
 

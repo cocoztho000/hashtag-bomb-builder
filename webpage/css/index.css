@@ -253,7 +253,6 @@ Set up charts for mobile
 }
 
 @media (max-width: 725px) {
-
     #pieChartContainer {
       width: 80%;
     }

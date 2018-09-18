@@ -15,6 +15,11 @@
   padding: 6.3px 18px;
 }
 
+
+#header_gap {
+  height: 75px;
+}
+
 #tags {
     width: 100%;
     display: inline-block;
@@ -48,6 +53,8 @@
   cursor: pointer;
 }
 
+
+
 /*OVERRIDE: border radius on form since it was not on the right side*/
 .input-group .form-control:first-child {
   border-radius: 4px;
@@ -70,4 +77,13 @@
     #search_values {
       font-size: 11px;
     }
+    #header_gap {
+      height: 100px;
+    }
+}
+
+@media (max-width: 630px) {
+  #header_gap {
+    height: 80px;
+  }
 }
