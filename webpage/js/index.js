@@ -186,7 +186,7 @@ var weightChartOptions = {
             var tempBkndClr = myBar.data.datasets[0].backgroundColor[i];
             legendHtml.push('<li id="' + i + '" class="legend-item">');
             legendHtml.push('    <div class="legend-div" onclick="newLegendClickHandler(event, ' + '\'' + i + '\'' + ')">');
-            legendHtml.push('        <span id="legend_span" class="chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');
+            legendHtml.push('        <span class="legend_span chart-legend-color" style="background-color:' + tempBkndClr + '"></span>');
             if (chart.data.labels[i]) {
                 legendHtml.push('        ' + chart.data.labels[i] + ': '+ chart.data.datasets[0].data[i] +  '</div></li>');
             } else {
@@ -376,7 +376,7 @@ function newLegendClickHandler(e, legendItemIndex) {
     console.log("INDEX: " + legendItemIndex);
     var parent = e.target;
     // If user click on an inside element of the div use the parent to put the strike through
-    if ($(parent).attr('id') == "legend_span"){
+    if ($(parent).attr('class') == "legend_span"){
         parent = $(parent).parent()
     }
 
