@@ -237,23 +237,6 @@ input::-moz-focus-outer {
   border: 0;
 }
 
-
-@media (max-width: 500px) {
-    #legendContainer {
-      margin: 0 0;
-      font-size: 11px;
-    }
-    ul#horizontal-list {
-      columns: 2;
-    }
-    .legend_span {
-      width: 10px;
-    }
-    .legend-div {
-      width: 50vw;
-    }
-}
-
 /*
 Set up charts for mobile
 */
@@ -288,5 +271,18 @@ Set up charts for mobile
     }
     #helpContainer {
       font-size: 13px;
+    }
+    #legendContainer {
+      margin: 0 0;
+      font-size: 11px;
+    }
+    ul#horizontal-list {
+      columns: 2;
+    }
+    .legend_span {
+      width: 10px;
+    }
+    .legend-div {
+      width: 50vw;
     }
 }
