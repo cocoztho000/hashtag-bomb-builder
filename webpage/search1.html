@@ -1,23 +1,61 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title></title>
-  <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="css/search.css" rel="stylesheet"/>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style>
+  #contactForm {
+  display: flex;
+}
+#search_values {
+  flex-grow: 2;
+}
+#star {
+  text-align: center;
+  border: solid black 1px;
+  width: 40px;
+  height: 20px;
+}
 
-</head>
-<body>
-<div class="row search">
-  <div class="col-lg-6 center">
-    <div class="input-group">
-      <input type="text" class="form-control" placeholder="Comma Seperated list of tags">
-      <span class="input-group-btn">
-        <button class="btn btn-default" type="button">Search</button>
-      </span>
-    </div><!-- /input-group -->
-  </div><!-- /.col-lg-6 -->
-</div>
-</body>
-</html>
+
+/*
+main {
+  display: flex;
+}
+h2 {
+  text-align: center;
+  padding: 4px 5px;
+  white-space: nowrap;
+}
+
+aside {
+  flex-grow: 2;
+}
+
+section {
+	background: #BE4C39;
+}
+
+aside, ul li {
+	background: #2793C7;
+}
+*/
+</style>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<form id="contactForm" autocomplete="off">
+  <!-- NEW TEXT: "Space or Comma Seperated Hashtags" -->
+  <input id="search_values" type="text" class="form-control" placeholder="One Hashtag">
+  <i id="star" class="fa fa-star" aria-hidden="true"></i>
+  <span class="search_button input-group-btn">
+    <div>
+      <button id="search_submit" type="submit" class="float_right search_button btn btn-default">Search</button>
+    </div>
+  </span>
+</form>
+
+<!-- 
+<main>
+  <section>
+    <h2>CSS, Or:</h2>
+  </section>
+  <aside>
+    <h2>How I Learned to Stop Worrying and Love the Flexbox.</h2>
+  </aside>
+</main> -->

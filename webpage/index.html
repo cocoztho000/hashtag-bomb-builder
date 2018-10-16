@@ -39,8 +39,8 @@
   src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
   integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
   crossorigin="anonymous"></script> -->
-  <!-- <script src="https://code.jquery.com/jquery-1.12.4.js"></script> -->
-  <!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+    <!-- <script src="https://code.jquery.com/jquery-1.12.4.js"></script> -->
+    <!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
 
     <link rel="stylesheet" type="text/css" href="css/header.css?v=1.0.0">
     <link rel="stylesheet" type="text/css" href="css/loader.css?v=1.0.0">
@@ -56,23 +56,21 @@
         <div id="header_overlay">
             <div id="leftSide">
                 <img id="icon" height="40px" src="images/tag_bomb-80-white.png" alt="name small">
-                <h3>Target your audience with hashtag bombs</h3>
+                <h3>Target your Instagram audience with hashtag bombs</h3>
             </div>
+            <div class="flexRestOfContentLeft" ></div>
 
-            <div class="row search">
-                <div id="searchContainer" class="col-sm-8 center">
-                    <div class="input-group">
-                        <form id="contactForm" autocomplete="off">
-                            <!-- NEW TEXT: "Space or Comma Seperated Hashtags" -->
-                            <input id="search_values" type="text" class="form-control" placeholder="One Hashtag">
-                            <span class="search_button input-group-btn">
-                                <i class="fal fa-star"></i>
-                                <button id="search_submit" type="submit" class="search_button btn btn-default">Search</button>
-                            </span>
-                        </form>
-                    </div><!-- /input-group -->
-                </div><!-- /.col-lg-6 -->
-            </div>
+            <form id="contactForm" autocomplete="off">
+                <!-- NEW TEXT: "Space or Comma Seperated Hashtags" -->
+                <input id="search_values" type="text" class="form-control" placeholder="One Hashtag">
+                <i id="star" class="fa fa-star" aria-hidden="true"></i>
+                <span class="search_button input-group-btn">
+                    <div>
+                        <button id="search_submit" type="submit" class="float_right search_button btn btn-default">Search</button>
+                    </div>
+                </span>
+            </form>
+            <div class="flexRestOfContentRight" ></div>
         </div>
         <div class="load-bar">
             <div class="bar"></div>
@@ -99,6 +97,7 @@
     </div>
 
     <div id="chartContainer" style="text-align: center;">
+        <span id="legendNotification">Click the Legend to hide tags</span>
         <div id="legendContainer"></div>
         <div id="barChartContainer">
             <canvas id="barChart"></canvas>
@@ -111,7 +110,7 @@
                 <div>
                     <div class="range-slider">
                         <div id="range-container">
-                            <input class="range-slider__range" type="range" value="0" min="0" max="5">
+                            <input id="range_slider" class="range-slider__range" type="range" min="0" max="5">
                             <span class="range-slider__value">0</span>
                         </div>
                     </div>
@@ -122,7 +121,7 @@
                 </code>
             </div>
         </div>
-        <input type="text" value="Hello World" id="holdtext" style="display: none;"/>
+        <input type="text" value="Hello World" id="holdtext" style="display: none;" />
     </div>
     <div style="height: 250px;"></div>
 </body>
@@ -131,20 +130,20 @@
 <script type="text/javascript">
     (function () {
         try {
-           if (window.CHITIKA === undefined) { window.CHITIKA = { 'units': [] }; };
+            if (window.CHITIKA === undefined) { window.CHITIKA = { 'units': [] }; };
             var ad_width = 728;
             var ad_height = 90;
             if ($(window).width() < 725) {
                 ad_width = 320;
                 ad_height = 50;
             }
-            var unit = {"calltype":"async[2]","publisher":"cocoztho000","width":ad_width,"height":ad_height,"sid":"Chitika Default"};
+            var unit = { "calltype": "async[2]", "publisher": "cocoztho000", "width": ad_width, "height": ad_height, "sid": "Chitika Default" };
             var placement_id = window.CHITIKA.units.length;
             window.CHITIKA.units.push(unit);
 
             document.write('<div class="chitikaAdBlock" id="chitikaAdBlock-' + placement_id + '"></div>');
         }
-        catch(err) {
+        catch (err) {
             console.Log("Error" + err.message);
         }
     }());

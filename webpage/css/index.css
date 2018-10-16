@@ -33,6 +33,13 @@ body {
 footer{
   z-index: 0;
 }
+
+#legendNotification {
+  color: grey;
+  cursor: default;
+  /* border: 1px solid black; */
+  /* text-decoration: underline; */
+}
 #legendContainer{
   text-align: center;
   margin: 0 13vw;
