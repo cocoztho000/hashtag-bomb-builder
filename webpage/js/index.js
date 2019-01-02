@@ -569,6 +569,8 @@ $("#search_submit").click(function() {
     }
     newTags += tags.charAt(i);
   }
+  // Update URL incase the user hits the refresh button it brings them back to the page they were on
+  window.history.pushState('page2', 'Tag Bomb - ' + tags, '?q=' + tags);
   document.getElementById("search_values").blur();
   showLoadingBar();
   // Reset Dataset when new value is submited
@@ -576,7 +578,9 @@ $("#search_submit").click(function() {
   hiddenDataSet = [];
   getDataset(newTags, function(data) {
     loadCharts(newTags);
-    startCharacterGenerator();
+    // NOTE(tom): disabling tag generator since it looks like i am hacking the user.
+    // startCharacterGenerator();
+    flashClickLegendWarning();
   });
 });
 
@@ -630,54 +634,114 @@ var rangeSlider = function() {
 rangeSlider();
 
 // ----------------------------------------------------------------
-// Random character generator
-var randomChars = [
-  "!",
-  "@",
-  "#",
-  "$",
-  "%",
-  "^",
-  "&",
-  "*",
-  "(",
-  ")",
-  "_",
-  "+",
-  "<",
-  ">",
-  "?",
-  "/"
-];
-
-function randomCharacterString(lengthInt) {
-  var randomCharStr = "";
-  for (i = 0; i < lengthInt; i++) {
-    var x = Math.floor(Math.random() * randomChars.length);
-    randomCharStr += randomChars[x];
-  }
-  return randomCharStr;
+// Click Legend Warning
+function flashClickLegendWarning(){
+  fadeOpposite(8, "#legendNotification")
 }
 
-var wordInterval;
-var finalStr = "Click the Legend to hide tags";
-var index = 1;
-
-function startCharacterGenerator() {
-  wordInterval = setInterval(myTimer, 100);
-}
-
-function myTimer() {
-  if (index > finalStr.length) {
-    // Stop character generator
-    clearInterval(wordInterval);
-    return;
+var isFaddedIn=true
+function fadeOpposite(count, element){
+  if (count <= 0){
+    return
   }
-  var realWord = finalStr.slice(0, index);
-  var randomWord = randomCharacterString(finalStr.length - index);
 
-  document.getElementById("legendNotification").innerHTML =
-    realWord + randomWord;
-  index++;
+  if (isFaddedIn) {
+    isFaddedIn=false
+    console.log("Fade out - " + count)
+    $(element).fadeOut("slow", "swing", function(){
+      fadeOpposite(--count, element)
+    });
+  } else {
+    isFaddedIn=true
+    console.log("Fade in  - " + count)
+    $(element).fadeIn("slow", "swing", function(){
+      fadeOpposite(--count, element)
+    });
+  }
+  return
 }
 // ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// Process Query URL Arg - On the first time the page loads check the query url arg and load data
+var getUrlParameter = function getUrlParameter(sParam) {
+  var sPageURL = window.location.search.substring(1),
+      sURLVariables = sPageURL.split('&'),
+      sParameterName,
+      i;
+
+  for (i = 0; i < sURLVariables.length; i++) {
+      sParameterName = sURLVariables[i].split('=');
+
+      if (sParameterName[0] === sParam) {
+          return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+      }
+  }
+};
+
+function processUrlArgs(){
+  var query = getUrlParameter('q');
+  console.log("URL ARG: "+ query);
+  if (query !== undefined && query != ""){
+    $("#search_values").val(query);
+    $("#search_submit").click();
+  }
+}
+
+processUrlArgs();
+
+
+// ----------------------------------------------------------------
+
+
+// // Random character generator
+// var randomChars = [
+//   "!",
+//   "@",
+//   "#",
+//   "$",
+//   "%",
+//   "^",
+//   "&",
+//   "*",
+//   "(",
+//   ")",
+//   "_",
+//   "+",
+//   "<",
+//   ">",
+//   "?",
+//   "/"
+// ];
+
+// function randomCharacterString(lengthInt) {
+//   var randomCharStr = "";
+//   for (i = 0; i < lengthInt; i++) {
+//     var x = Math.floor(Math.random() * randomChars.length);
+//     randomCharStr += randomChars[x];
+//   }
+//   return randomCharStr;
+// }
+
+// var wordInterval;
+// var finalStr = "Click the Legend to hide tags";
+// var index = 1;
+
+// function startCharacterGenerator() {
+//   wordInterval = setInterval(myTimer, 100);
+// }
+
+// function myTimer() {
+//   if (index > finalStr.length) {
+//     // Stop character generator
+//     clearInterval(wordInterval);
+//     return;
+//   }
+//   var realWord = finalStr.slice(0, index);
+//   var randomWord = randomCharacterString(finalStr.length - index);
+
+//   document.getElementById("legendNotification").innerHTML =
+//     realWord + randomWord;
+//   index++;
+// }
+// // ----------------------------------------------------------------
