@@ -63,7 +63,9 @@
             <form id="contactForm" autocomplete="off">
                 <!-- NEW TEXT: "Space or Comma Seperated Hashtags" -->
                 <input id="search_values" type="text" class="form-control" placeholder="One Hashtag">
-                <i id="star" class="fa fa-star" aria-hidden="true"></i>
+                <div id="starContainer">
+                    <i id="star" class="fa fa-star" aria-hidden="true"></i>
+                </div>
                 <span class="search_button input-group-btn">
                     <div>
                         <button id="search_submit" type="submit" class="float_right search_button btn btn-default">Search</button>
@@ -126,7 +128,9 @@
     <div style="height: 250px;"></div>
 </body>
 
+<script src="js/cookie.js"></script>
 <script type="text/javascript" src="js/index.js?v=1.0.1" async></script>
+
 <script type="text/javascript">
     (function () {
         try {

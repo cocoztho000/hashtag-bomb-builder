@@ -26,6 +26,7 @@
   display: flex;
   flex-grow: 1;
   max-width: 800px;
+  align-items: center;
 }
 
 .flexRestOfContentLeft {
@@ -41,12 +42,31 @@
   z-index: 0;
   float: left;
 }
+
+#starContainer {
+  flex-grow: 1;
+  height: 100%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+  border-left-width: 0px;
+  height: 34px;
+  cursor: pointer;
+}
+
+#starContainer:hover {
+  background: #d7dcdf;
+}
+
 #star {
-  display: none;
   text-align: center;
-  border: solid black 1px;
   width: 40px;
-  height: 20px;
+  height: auto;
+  font-size: 20px;
+  color: rgb(128, 128, 128);
 }
 
 .float_right {
@@ -125,7 +145,7 @@
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   #leftSide {
     position: relative;
   }

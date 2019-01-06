@@ -1,9 +1,12 @@
 // import getCookie from 'js/cookies.js';
 var NUMBER_OF_DOTS_IN_COPY_SECTION = 5;
-var NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE =
-  "NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE";
+var NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE = "NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE";
+var FAVORITES_COOKIE = "FAVORITES_COOKIE";
 var TAG_COOKIE_STR = "tags_disabled";
 var TAG_SEARCHED_STR = "tags_searched";
+
+// Before using new cookie library we must first delete the current cookie
+document.cookie = NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE + "=deleted; expires=Thu, 01 Jan 1970 00:00:01 GMT";
 
 var dataSet = [];
 var hiddenDataSet = [];
@@ -90,7 +93,7 @@ function getDatasetPie(tags, pieChartCallback) {
 function getDatasetTags(tags, onLoadCallback) {
   getDataset(tags, function(tempDataset) {
     var returnData = {};
-    var previouslyHiddenTags = getCookie(TAG_COOKIE_STR);
+    var previouslyHiddenTags = Cookies.get(TAG_COOKIE_STR);
 
     tempDataset.forEach(function(tempData) {
       // TODO(tom):find a way to save this in a cookie
@@ -124,7 +127,7 @@ var allTags = {};
 
 function generateDots() {
   var dotStr = ".<br/>";
-  var dotCookieCountStr = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
+  var dotCookieCountStr = Cookies.get(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
 
   if (dotCookieCountStr !== undefined && dotCookieCountStr != "") {
     dotCookieCountStr = parseInt(dotCookieCountStr, 10);
@@ -543,6 +546,77 @@ $("#leftSide").click(function(){
   window.open(window.location.pathname.split('?')[0],"_self");
 })
 
+$("#starContainer").click(function(){
+  // Flip color when star button is clicked
+  if (isStarGreyedOut()){
+    setStarGold();
+    addFavoritieToCookie();
+  } else {
+    setStarGrey();
+  }
+})
+
+// Add 
+function addFavoritieToCookie(favoriteSearchTagName, tagResults) {
+  var favoritesCookie = Cookies.get(FAVORITES_COOKIE);
+  console.log(favoritesCookie);
+  if (favoritesCookie === undefined) {
+    favoritesCookie = "[]";
+    console.log(`Favorties Cookie is undefined. Defaulting to "${favoritesCookie}"`);
+  }
+
+  var favoritesJson = JSON.parse(favoritesCookie);
+  var newTag = {
+    "tagName": favoriteSearchTagName,
+    "tagDataStr": tagResults,
+  };
+  favoritesJson.push(newTag);
+  console.log(favoritesJson);
+
+  setFavoriteToCookie(favoritesJson);
+}
+
+function deleteFavoriteToCookie(favoriteTagToDelete) {
+  var favoritesCookie = Cookies.getJSON(FAVORITES_COOKIE);
+  if (favoritesCookie === undefined){
+    return
+  }
+
+  var newCookie = []
+  for (var i = 0; i < favoritesCookie.length; i++) {
+    if (favoritesCookie[i].tagName != favoriteTagToDelete) {
+      newCookie.push(favoritesCookie[i]);
+    }
+  }
+  setFavoriteToCookie(newCookie)
+}
+
+function setFavoriteToCookie(newTagCookieToSet) {
+  Cookies.set(FAVORITES_COOKIE, newTagCookieToSet)
+}
+
+function getFavoriteToCookie(){
+  var favoritesCookieData = Cookies.getJSON(FAVORITES_COOKIE, newTagCookieToSet)
+  var result = [];
+  for(var i in favoritesCookieData) {
+    result.push([i, favoritesCookieData [i]]);
+  }
+  return result;
+}
+
+function isStarGreyedOut(){
+  var greyColor = "rgb(128, 128, 128)";
+  return $("#star").css("color") == greyColor
+}
+
+function setStarGold() {
+  $("#star").css("color", "gold");
+}
+
+function setStarGrey() {
+  $("#star").css("color", "grey");
+}
+
 // TODO(tom): Enable this
 // $("#search_values").autocomplete({
 //     source: ["Apple", "Boy", "Cat"],
@@ -592,20 +666,6 @@ $("#contactForm").submit(function() {
   return false;
 });
 
-function setCookie(name, value) {
-  document.cookie = name + "=" + (value || "");
-}
-
-function getCookie(name) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split(";");
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == " ") c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-  }
-  return "";
-}
 
 function pluralizeString(integerToCheck, stringToPluralize){
   if (integerToCheck == 1){
@@ -620,18 +680,18 @@ var rangeSlider = function() {
   var sliderJS = document.getElementById('range_slider');
  
   // Get the number of dots
-  var numDots = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
+  var numDots = Cookies.get(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
   if (numDots === null || numDots === "" || numDots === undefined) {
     console.log(`Number of dots is: ${numDots}. Defaulting to "3"`);
     numDots = "3";
   }
-
+  console.log(`Number of dots is: ${numDots}`);
   // Set inital value of dot slider
   value.html(numDots + pluralizeString(numDots, " Dot"));
 
   // On ever slide of the slider update cookie, tag block and slider output string
   sliderJS.addEventListener('input', function(){
-    setCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE, this.value.toString());
+    Cookies.set(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE, this.value.toString());
     updateTagBlock()
     value.html(this.value + pluralizeString(this.value, " Dot"));
   });
