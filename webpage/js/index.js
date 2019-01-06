@@ -550,7 +550,7 @@ $("#starContainer").click(function(){
   // Flip color when star button is clicked
   if (isStarGreyedOut()){
     setStarGold();
-    addFavoritieToCookie();
+    addFavoriteTag();
   } else {
     setStarGrey();
   }
@@ -558,6 +558,11 @@ $("#starContainer").click(function(){
 
 // Add 
 function addFavoriteTag(favoriteSearchTagName, tagResults) {
+  if (favoriteSearchTagName === undefined || favoriteSearchTagName === "" || tagResults === undefined || tagResults == ""){
+    console.log("Data not defined");
+    return
+  }
+
   var favoritesCookie = getFavoriteTagsCookie();
 
   if (existsFavoriteTag(favoriteSearchTagName)){
