@@ -539,6 +539,10 @@ $("#tags").click(function() {
   copyTags();
 });
 
+$("#leftSide").click(function(){
+  window.open(window.location.pathname.split('?')[0],"_self");
+})
+
 // TODO(tom): Enable this
 // $("#search_values").autocomplete({
 //     source: ["Apple", "Boy", "Cat"],
