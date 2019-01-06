@@ -557,30 +557,45 @@ $("#starContainer").click(function(){
 })
 
 // Add 
-function addFavoritieToCookie(favoriteSearchTagName, tagResults) {
-  var favoritesCookie = Cookies.get(FAVORITES_COOKIE);
-  console.log(favoritesCookie);
-  if (favoritesCookie === undefined) {
-    favoritesCookie = "[]";
-    console.log(`Favorties Cookie is undefined. Defaulting to "${favoritesCookie}"`);
+function addFavoriteTag(favoriteSearchTagName, tagResults) {
+  var favoritesCookie = getFavoriteTagsCookie();
+
+  if (existsFavoriteTag(favoriteSearchTagName)){
+    updateFavoiteTag(favoriteSearchTagName, tagResults);
+  } else {
+    var newTag = {
+      "tagName": favoriteSearchTagName,
+      "tagDataStr": tagResults,
+    };
+    favoritesJson.push(newTag);
+    setFavoriteToCookie(favoritesJson);
   }
-
-  var favoritesJson = JSON.parse(favoritesCookie);
-  var newTag = {
-    "tagName": favoriteSearchTagName,
-    "tagDataStr": tagResults,
-  };
-  favoritesJson.push(newTag);
-  console.log(favoritesJson);
-
-  setFavoriteToCookie(favoritesJson);
 }
 
-function deleteFavoriteToCookie(favoriteTagToDelete) {
-  var favoritesCookie = Cookies.getJSON(FAVORITES_COOKIE);
-  if (favoritesCookie === undefined){
-    return
+function existsFavoriteTag(favoriteTag){
+  var favoritesCookie = getFavoriteTagsCookie();
+
+  for (var i = 0; i < favoritesCookie.length; i++) {
+    if (favoritesCookie[i].tagName == favoriteTag) {
+      return true;
+    }
   }
+  return false;
+}
+
+function updateFavoiteTag(favoriteSearchTagName, tagResults){
+  var favoritesCookie = getFavoriteTagsCookie();
+
+  for (var i = 0; i < favoritesCookie.length; i++) {
+    if (favoritesCookie[i].tagName == favoriteSearchTagName) {
+      favoritesCookie[i].tagDataStr = JSON.stringify(tagResults); 
+    }
+  }
+  setFavoriteToCookie(favoritesCookie);
+}
+
+function deleteFavoriteTag(favoriteTagToDelete) {
+  var favoritesCookie = getFavoriteTagsCookie();
 
   var newCookie = []
   for (var i = 0; i < favoritesCookie.length; i++) {
@@ -588,18 +603,23 @@ function deleteFavoriteToCookie(favoriteTagToDelete) {
       newCookie.push(favoritesCookie[i]);
     }
   }
-  setFavoriteToCookie(newCookie)
+  setFavoriteTag(newCookie)
 }
 
-function setFavoriteToCookie(newTagCookieToSet) {
+function setFavoriteTag(newTagCookieToSet) {
   Cookies.set(FAVORITES_COOKIE, newTagCookieToSet)
 }
 
-function getFavoriteToCookie(){
-  var favoritesCookieData = Cookies.getJSON(FAVORITES_COOKIE, newTagCookieToSet)
+function getFavoriteTag(){
   var result = [];
+  var favoritesCookieData = Cookies.getJSON(FAVORITES_COOKIE, newTagCookieToSet);
+
+  if (favoritesCookieData === undefined){
+    return result;
+  }
+
   for(var i in favoritesCookieData) {
-    result.push([i, favoritesCookieData [i]]);
+    result.push(favoritesCookieData[i]);
   }
   return result;
 }
