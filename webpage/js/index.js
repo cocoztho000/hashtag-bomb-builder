@@ -126,7 +126,7 @@ function generateDots() {
   var dotStr = ".<br/>";
   var dotCookieCountStr = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
 
-  if (dotCookieCountStr != null && dotCookieCountStr != "") {
+  if (dotCookieCountStr !== undefined && dotCookieCountStr != "") {
     dotCookieCountStr = parseInt(dotCookieCountStr, 10);
   }
 
@@ -603,32 +603,33 @@ function getCookie(name) {
   return "";
 }
 
+function pluralizeString(integerToCheck, stringToPluralize){
+  if (integerToCheck == 1){
+    return stringToPluralize;
+  }
+  return (stringToPluralize + "s");
+}
+
 // Range Slider
 var rangeSlider = function() {
-  var slider = $(".range-slider"),
-    range = $(".range-slider__range"),
-    value = $(".range-slider__value");
+  var value = $(".range-slider__value");
+  var sliderJS = document.getElementById('range_slider');
+ 
+  // Get the number of dots
+  var numDots = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
+  if (numDots === null || numDots === "" || numDots === undefined) {
+    console.log(`Number of dots is: ${numDots}. Defaulting to "3"`);
+    numDots = "3";
+  }
 
-  slider.each(function() {
-    value.each(function() {
-      var numDots = getCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE);
-      var value = $(this)
-        .prev()
-        .attr("value");
-      if (numDots != null && numDots != "" && numDots != undefined) {
-        value = numDots;
-      }
-      console.log("Value: " + value);
-      $(this).html(value + " Dots");
-    });
+  // Set inital value of dot slider
+  value.html(numDots + pluralizeString(numDots, " Dot"));
 
-    range.on("input", function() {
-      setCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE, this.value.toString());
-      updateTagBlock();
-      $(this)
-        .next(value)
-        .html(this.value + " Dots");
-    });
+  // On ever slide of the slider update cookie, tag block and slider output string
+  sliderJS.addEventListener('input', function(){
+    setCookie(NUMBER_OF_DOTS_IN_COPY_SECTION_COOKIE, this.value.toString());
+    updateTagBlock()
+    value.html(this.value + pluralizeString(this.value, " Dot"));
   });
 };
 rangeSlider();
@@ -647,13 +648,11 @@ function fadeOpposite(count, element){
 
   if (isFaddedIn) {
     isFaddedIn=false
-    console.log("Fade out - " + count)
     $(element).fadeOut("slow", "swing", function(){
       fadeOpposite(--count, element)
     });
   } else {
     isFaddedIn=true
-    console.log("Fade in  - " + count)
     $(element).fadeIn("slow", "swing", function(){
       fadeOpposite(--count, element)
     });
