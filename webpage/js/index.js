@@ -557,88 +557,27 @@ $("#starContainer").click(function(){
   if (isStarGreyedOut()){
     var holdtext = document.getElementById("tags");
 
-    addFavoriteTag(tags, allTags);
+    AddFavoriteTag(tags, allTags);
     setStarGold();
   } else {
-    deleteFavoriteTag(tags)
+    DeleteFavoriteTag(tags)
     setStarGrey();
   }
 })
 
-// Add 
-function addFavoriteTag(favoriteSearchTagName, tagResults) {
-  if (favoriteSearchTagName === undefined || favoriteSearchTagName === "" || tagResults === undefined || tagResults == ""){
-    console.log("Search Feild is empty, setting start as grey");
-    setStarGrey();
-    return
-  }
 
-  var favoritesCookie = getFavoriteTag();
 
-  if (existsFavoriteTag(favoriteSearchTagName)){
-    updateFavoiteTag(favoriteSearchTagName, tagResults);
-  } else {
-    console.log(tagResults);
-    var newTag = {
-      "tagName": favoriteSearchTagName,
-      "tagDataStr": tagResults,
-    };
-    favoritesCookie.push(newTag);
-    setFavoriteTag(favoritesCookie);
-  }
-}
 
-function existsFavoriteTag(favoriteTag){
-  var favoritesCookie = getFavoriteTag();
 
-  for (var i = 0; i < favoritesCookie.length; i++) {
-    if (favoritesCookie[i].tagName == favoriteTag) {
-      return true;
-    }
-  }
-  return false;
-}
 
-function updateFavoiteTag(favoriteSearchTagName, tagResults){
-  var favoritesCookie = getFavoriteTag();
 
-  for (var i = 0; i < favoritesCookie.length; i++) {
-    if (favoritesCookie[i].tagName == favoriteSearchTagName) {
-      favoritesCookie[i].tagDataStr = tagResults; 
-    }
-  }
-  setFavoriteTag(favoritesCookie);
-}
 
-function deleteFavoriteTag(favoriteTagToDelete) {
-  var favoritesCookie = getFavoriteTag();
 
-  var newCookie = []
-  for (var i = 0; i < favoritesCookie.length; i++) {
-    if (favoritesCookie[i].tagName != favoriteTagToDelete) {
-      newCookie.push(favoritesCookie[i]);
-    }
-  }
-  setFavoriteTag(newCookie)
-}
 
-function setFavoriteTag(newTagCookieToSet) {
-  Cookies.set(FAVORITES_COOKIE, newTagCookieToSet)
-}
 
-function getFavoriteTag(){
-  var result = [];
-  var favoritesCookieData = Cookies.getJSON(FAVORITES_COOKIE);
 
-  if (favoritesCookieData === undefined){
-    return result;
-  }
 
-  for(var i in favoritesCookieData) {
-    result.push(favoritesCookieData[i]);
-  }
-  return result;
-}
+
 
 function isStarGreyedOut(){
   var greyColor = "rgb(128, 128, 128)";
@@ -670,6 +609,15 @@ $("#search_submit").click(function() {
   if (errorStr.length > 0) {
     showError(errorStr);
     return;
+  }
+
+  // Check if search data has been favorited
+  if (ExistsFavoriteTag(tags)){
+    console.log("tag is fovorited " + tags);
+    setStarGold();
+  } else {
+    console.log("tag is not fovorited " + tags);
+    setStarGrey();
   }
 
   newTags = "";
