@@ -5,3 +5,4 @@ requests
 # oauth2client
 PyMySQL
 flask-restful
+mod-wsgi

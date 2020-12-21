@@ -1,13 +1,18 @@
-# Auto Open
+# Archived
 
-Add this python script to your linux startup and it will open the desired windows and
-their positions on your screen.
+This project relied on Instagram's public Graph API which deprecated on July 31, 2018.  Feel free to use this code however you would like. :)
 
-Note: Only Compatable with firefox.
+# Hashtag Bomb Builder
+
+Use instagram public API's to find the hashtags your audience is using
+
+![home](docs/images/index.png "Home")
 
 # Install Instructions
 
-### Setup Virtualenv
+Note: My server is using an Apache HTTP Server so to host a python app you have to `mod_wigi`. This might not be the case for the server you're running
+
+### Setup
 ```
 virtualenv .venv
 . .venv/bin/activate
@@ -18,17 +23,12 @@ virtualenv .venv
 pip install -U -r requirments.txt
 ```
 
+### Setup wsgi config
+update `hashtagbombbuilder.wsgi` to the local path of your files
+<!--
 ### Download Driver
 ```
 wget https://github.com/mozilla/geckodriver/releases/download/v0.19.1/geckodriver-v0.19.1-linux64.tar.gz
-```
+``` -->
 
-### Untar driver and add it to `/usr/local/bin`
-
-# SETUP
-
-since the env is a 3.5 env we need to install 2.7 python for mod_wigi since thats
-what its compiled for
-```
-virtualenv --python=/usr/bin/python2.7 .venv
-```
+<!-- ### Untar driver and add it to `/usr/local/bin` -->
